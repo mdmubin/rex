@@ -1,0 +1,1 @@
+project(rex_tests)
