@@ -214,3 +214,104 @@ static_assert(
     &&  is_class_v<decltype(TestLambda)>
     && !is_class_v<TestEnumClassType>
 );
+// is arithmetic
+static_assert(
+        is_arithmetic_v<bool>
+    &&  is_arithmetic_v<char>
+    &&  is_arithmetic_v<char const>
+    &&  is_arithmetic_v<int>
+    &&  is_arithmetic_v<int const>
+    &&  is_arithmetic_v<float>
+    &&  is_arithmetic_v<float const>
+    &&  is_arithmetic_v<decltype(TestStruct::MemberVariable)>
+    && !is_arithmetic_v<TestUnion>
+    && !is_arithmetic_v<char&>
+    && !is_arithmetic_v<char*>
+    && !is_arithmetic_v<int&>
+    && !is_arithmetic_v<int*>
+    && !is_arithmetic_v<float&>
+    && !is_arithmetic_v<float*>
+    && !is_arithmetic_v<TestEnumClassType>
+    && !is_arithmetic_v<TestStruct>
+);
+// is compound
+static_assert(
+        is_compound_v<TestStruct>
+    &&  is_compound_v<TestUnion>
+    &&  is_compound_v<TestEnumType>
+    &&  is_compound_v<decltype(TestFunction)>
+    &&  is_compound_v<decltype(&TestFunction)>
+    &&  is_compound_v<int[100]>
+    &&  is_compound_v<int*>
+    &&  is_compound_v<int&>
+    &&  is_compound_v<decltype(TestStruct::StaticFunction)>
+    &&  is_compound_v<TestStruct::NestedUnion>
+    && !is_compound_v<int>
+    && !is_compound_v<float>
+    && !is_compound_v<char>
+    && !is_compound_v<volatile int>
+    && !is_compound_v<const char>
+);
+// is compound
+static_assert(
+        is_compound_v<TestStruct>
+    &&  is_compound_v<TestUnion>
+    &&  is_compound_v<TestEnumType>
+    &&  is_compound_v<decltype(TestFunction)>
+    &&  is_compound_v<decltype(&TestFunction)>
+    &&  is_compound_v<int[100]>
+    &&  is_compound_v<int*>
+    &&  is_compound_v<int&>
+    &&  is_compound_v<TestStruct::NestedUnion>
+    &&  is_compound_v<decltype(TestStruct::StaticFunction)>
+    &&  is_fundamental_v<std::nullptr_t>
+    &&  is_fundamental_v<const volatile decltype(nullptr)>
+    && !is_compound_v<int>
+    && !is_compound_v<float>
+    && !is_compound_v<char>
+    && !is_compound_v<volatile int>
+    && !is_compound_v<const char>
+);
+// is fundamental
+static_assert(
+        is_fundamental_v<int>
+    &&  is_fundamental_v<float>
+    &&  is_fundamental_v<char>
+    &&  is_fundamental_v<volatile int>
+    &&  is_fundamental_v<const char>
+    &&  is_fundamental_v<std::nullptr_t>
+    &&  is_fundamental_v<const volatile decltype(nullptr)>
+    && !is_fundamental_v<TestStruct>
+    && !is_fundamental_v<TestUnion>
+    && !is_fundamental_v<TestEnumType>
+    && !is_fundamental_v<decltype(TestFunction)>
+    && !is_fundamental_v<decltype(&TestFunction)>
+    && !is_fundamental_v<int[100]>
+    && !is_fundamental_v<int*>
+    && !is_fundamental_v<int&>
+    && !is_fundamental_v<decltype(TestStruct::StaticFunction)>
+    && !is_fundamental_v<TestStruct::NestedUnion>
+);
+// is object
+static_assert(
+       !is_object_v<void>
+    &&  is_object_v<int>
+    && !is_object_v<int&>
+    &&  is_object_v<int*>
+    && !is_object_v<int*&>
+    &&  is_object_v<TestStruct>
+    && !is_object_v<TestStruct&>
+    &&  is_object_v<TestStruct*>
+    && !is_object_v<int()>
+    &&  is_object_v<int(*)()>
+    && !is_object_v<int(&)()>
+);
+// is scalar
+static_assert(
+        is_scalar_v<int>
+    &&  is_scalar_v<float>
+    &&  is_scalar_v<TestEnumType>
+    &&  is_scalar_v<decltype(&TestStruct::MemberVariable)>
+    &&  is_scalar_v<decltype(nullptr)>
+    && !is_scalar_v<TestStruct>
+);
