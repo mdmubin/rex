@@ -4,5 +4,6 @@
 
 #include "rex/traits/alignment_of.hpp"
 #include "rex/traits/extent.hpp"
+#include "rex/traits/is_const_volatile.hpp"
 #include "rex/traits/is_same.hpp"
 #include "rex/traits/rank.hpp"
