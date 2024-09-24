@@ -30,6 +30,17 @@ enum TestEnumType {};
 
 enum class TestEnumClassType {};
 
+struct TestEmptyStruct {};
+struct TestStructWithVirtualFunc {
+    virtual void foo() {}
+};
+struct TestStructFinal final : TestStruct {};
+struct TestStructPureVirtualFunc {
+    virtual ~TestStructPureVirtualFunc() = default;
+    virtual void foo() = 0;
+};
+struct TestStructInheritPureVirtual : TestStructPureVirtualFunc {};
+
 } // namespace
 
 // is same
@@ -314,4 +325,69 @@ static_assert(
     &&  is_scalar_v<decltype(&TestStruct::MemberVariable)>
     &&  is_scalar_v<decltype(nullptr)>
     && !is_scalar_v<TestStruct>
+);
+// is abstract
+static_assert(
+       is_abstract_v<TestStructPureVirtualFunc>
+    && is_abstract_v<TestStructInheritPureVirtual>
+    && !is_abstract_v<TestStruct>
+    && !is_abstract_v<TestStructWithVirtualFunc>
+    && !is_abstract_v<TestStructFinal>
+);
+// is aggregate
+static_assert(
+    is_aggregate_v<TestStruct>
+    && is_aggregate_v<TestEmptyUnion>
+    && is_aggregate_v<TestUnion>
+    && is_aggregate_v<TestStruct::NestedUnion>
+    && is_aggregate_v<TestStructFinal> // inherit aggregate type
+    && !is_aggregate_v<TestStruct::NestedEnum>
+    && !is_aggregate_v<TestEnumClassType>
+    && !is_aggregate_v<TestStructInheritPureVirtual> // no member variables
+    && !is_aggregate_v<TestStructWithVirtualFunc>
+);
+// is empty
+static_assert(
+        is_empty_v<TestEmptyStruct>
+    && !is_empty_v<int>            // primitives are not empty types
+    && !is_empty_v<TestEmptyUnion> // empty unions are not emtpy types
+    && !is_empty_v<TestEnumType>   // empty enums  are not empty types
+    && !is_empty_v<TestEnumClassType>
+);
+// is final
+static_assert(
+        is_final_v<TestStructFinal>
+    &&  is_final_v<const volatile TestStructFinal>
+    && !is_final_v<TestStruct>
+    && !is_final_v<int>
+);
+// is polymorphic
+static_assert(
+        is_polymorphic_v<TestStructPureVirtualFunc>
+    &&  is_polymorphic_v<TestStructWithVirtualFunc>
+    &&  is_polymorphic_v<TestStructInheritPureVirtual>
+    && !is_polymorphic_v<TestStruct>
+    && !is_polymorphic_v<TestStructFinal>
+    && !is_polymorphic_v<int>
+);
+// is standard layout
+static_assert(
+        is_standard_layout_v<int>
+    &&  is_standard_layout_v<TestStruct>
+    &&  is_standard_layout_v<TestStructFinal>
+    &&  is_standard_layout_v<TestEmptyStruct>
+    && !is_standard_layout_v<TestStructWithVirtualFunc>
+    && !is_standard_layout_v<TestStructPureVirtualFunc>
+    && !is_standard_layout_v<TestStructInheritPureVirtual>
+);
+// is trivial
+static_assert(
+        is_trivial_v<int> // primitive
+    &&  is_trivial_v<TestEmptyStruct>
+    &&  is_trivial_v<TestInvocable>
+    && !is_trivial_v<TestStruct>
+    && !is_trivial_v<TestStructFinal>
+    && !is_trivial_v<TestStructPureVirtualFunc>
+    && !is_trivial_v<TestStructWithVirtualFunc>
+    && !is_trivial_v<TestStructInheritPureVirtual>
 );
