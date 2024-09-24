@@ -4,6 +4,34 @@
 // clang-format off
 using namespace rex;
 
+namespace {
+
+void TestFunction() {}
+
+union TestEmptyUnion {};
+
+union TestUnion { f32 f; i32 i; };
+
+struct TestStruct {
+    int MemberVariable = 0;
+    enum  NestedEnum {};
+    union NestedUnion{ f32 f; i32 i; };
+    void MemberFunction() {}
+    static void StaticFunction() {}
+};
+
+auto TestLambda = [](){};
+
+struct TestInvocable {
+    void operator()() {}
+};
+
+enum TestEnumType {};
+
+enum class TestEnumClassType {};
+
+} // namespace
+
 // is same
 static_assert(
         is_same_v<int, int>
@@ -50,4 +78,139 @@ static_assert(
     && is_same_v<const int,          match_cv_t<const int, int>>
     && is_same_v<const volatile int, match_cv_t<const volatile int, int>>
     && is_same_v<const volatile int, match_cv_t<const volatile int, const volatile int>>
+);
+// is void
+static_assert(
+        is_void_v<void>
+    &&  is_void_v<const void>
+    &&  is_void_v<volatile void>
+    &&  is_void_v<decltype(TestFunction())>
+    &&  is_void_v<decltype(TestLambda())>
+    && !is_void_v<void*>
+    && !is_void_v<int>
+    && !is_void_v<decltype(TestFunction)>
+    && !is_void_v<is_void<void>>
+);
+// is nullptr
+static_assert(
+        is_null_pointer_v<std::nullptr_t>
+    &&  is_null_pointer_v<decltype(nullptr)>
+    &&  is_null_pointer_v<const volatile std::nullptr_t>
+    && !is_null_pointer_v<int>
+);
+// is integral
+static_assert(
+        is_integral_v<int>
+    &&  is_integral_v<const volatile int>
+    &&  is_integral_v<bool> 
+    &&  is_integral_v<char>
+    && !is_integral_v<float>
+    && !is_integral_v<int*>
+    && !is_integral_v<TestStruct>
+    &&  is_integral_v<decltype(TestStruct::MemberVariable)>
+    && !is_integral_v<TestEnumType>
+);
+// is floating point
+static_assert(
+        is_floating_point_v<float>
+    &&  is_floating_point_v<const volatile double>
+    && !is_floating_point_v<TestStruct>
+    && !is_floating_point_v<float&>
+    && !is_floating_point_v<double&>
+    && !is_floating_point_v<int>
+);
+// is array
+static_assert(
+        is_array_v<int[]>
+    &&  is_array_v<int[3]>
+    &&  is_array_v<TestStruct[]>
+    && !is_array_v<TestStruct> 
+    &&  is_array_v<TestStruct[3]>
+    && !is_array_v<float>
+    && !is_array_v<int>
+    && !is_array_v<std::array<int, 3>>
+);
+// is enum
+static_assert(
+        is_enum_v<TestEnumType>
+    &&  is_enum_v<TestEnumClassType>
+    && !is_enum_v<int>
+    && !is_enum_v<TestStruct>
+    &&  is_enum_v<TestStruct::NestedEnum>
+);
+// is pointer
+static_assert(
+        is_pointer_v<TestStruct*>
+    &&  is_pointer_v<TestStruct const* volatile>
+    &&  is_pointer_v<void*>
+    &&  is_pointer_v<int*>
+    &&  is_pointer_v<int**>
+    &&  is_pointer_v<void (*)()>
+    && !is_pointer_v<TestStruct>
+    && !is_pointer_v<TestStruct&>
+    && !is_pointer_v<decltype(&TestStruct::MemberVariable)> // pointer to member variable
+    && !is_pointer_v<decltype(&TestStruct::MemberFunction)> // pointer to member function
+    && !is_pointer_v<int>
+    && !is_pointer_v<int[10]>
+    && !is_pointer_v<std::nullptr_t>
+);
+// is member pointer
+static_assert(
+        is_member_function_pointer_v<decltype(&TestStruct::MemberFunction)>
+    && !is_member_function_pointer_v<decltype(&TestStruct::StaticFunction)>
+    && !is_member_function_pointer_v<decltype(&TestFunction)>
+    &&  is_member_object_pointer_v<decltype(&TestStruct::MemberVariable)>
+    && !is_member_object_pointer_v<TestStruct*>
+    &&  is_member_pointer_v<decltype(&TestStruct::MemberVariable)>
+    &&  is_member_pointer_v<decltype(&TestStruct::MemberFunction)>
+    && !is_member_object_pointer_v<TestStruct::NestedEnum*>
+);
+// is lval reference
+static_assert(
+       !is_lvalue_reference_v<int>
+    &&  is_lvalue_reference_v<int&>
+    && !is_lvalue_reference_v<int&&>
+    && !is_lvalue_reference_v<TestStruct>
+    &&  is_lvalue_reference_v<TestStruct&>
+    && !is_lvalue_reference_v<TestStruct&&>
+);
+// is lval reference
+static_assert(
+       !is_rvalue_reference_v<int>
+    && !is_rvalue_reference_v<int&>
+    &&  is_rvalue_reference_v<int&&>
+    && !is_rvalue_reference_v<TestStruct>
+    && !is_rvalue_reference_v<TestStruct&>
+    &&  is_rvalue_reference_v<TestStruct&&>
+);
+// is reference
+static_assert(
+       !is_reference_v<int>
+    &&  is_reference_v<int&>
+    &&  is_reference_v<int&&>
+    && !is_reference_v<TestStruct>
+    &&  is_reference_v<TestStruct&>
+    &&  is_reference_v<TestStruct&&>
+);
+// is function
+static_assert(
+        is_function_v<decltype(TestFunction)>
+    &&  is_function_v<decltype(TestStruct::StaticFunction)>
+    && !is_function_v<TestInvocable>
+    &&  is_function_v<TestInvocable()>
+    && !is_function_v<decltype(TestLambda)>
+);
+// is union
+static_assert(
+        is_union_v<TestUnion>
+    &&  is_union_v<TestEmptyUnion>
+    &&  is_union_v<TestStruct::NestedUnion>
+    && !is_union_v<int>
+);
+// is class
+static_assert(
+        is_class_v<TestStruct>
+    &&  is_class_v<TestInvocable>
+    &&  is_class_v<decltype(TestLambda)>
+    && !is_class_v<TestEnumClassType>
 );
