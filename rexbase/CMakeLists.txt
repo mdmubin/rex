@@ -9,6 +9,7 @@ set(rex_base_inc
     ${rex_inc_dir}/rex/assert.hpp
     ${rex_inc_dir}/rex/config.hpp
     ${rex_inc_dir}/rex/types.hpp
+    ${rex_inc_dir}/rex/type_traits.hpp
 )
 set(rex_base_src
     ${rex_src_dir}/assert.cpp
