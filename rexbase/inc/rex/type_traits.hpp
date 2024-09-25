@@ -3,6 +3,8 @@
 #include "rex/traits/integral_constant.hpp"
 
 #include "rex/traits/alignment_of.hpp"
+#include "rex/traits/conjunction.hpp"
+#include "rex/traits/disjunction.hpp"
 #include "rex/traits/extent.hpp"
 #include "rex/traits/is_abstract.hpp"
 #include "rex/traits/is_aggregate.hpp"
@@ -19,6 +21,7 @@
 #include "rex/traits/is_fundamental.hpp"
 #include "rex/traits/is_integral.hpp"
 #include "rex/traits/is_member_pointer.hpp"
+#include "rex/traits/negation.hpp"
 #include "rex/traits/is_null_pointer.hpp"
 #include "rex/traits/is_object.hpp"
 #include "rex/traits/is_pointer.hpp"

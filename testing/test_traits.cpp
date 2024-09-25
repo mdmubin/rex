@@ -455,3 +455,29 @@ static_assert(
     &&  is_same_v<unsigned int,          make_unsigned_t<TestEnumType>>
     &&  is_same_v<unsigned int,          make_unsigned_t<TestEnumClassType>>
 );
+// negation
+static_assert(
+       is_same<false_type, typename negation<bool_constant<true>> ::type>::value
+    && is_same<true_type,  typename negation<bool_constant<false>>::type>::value
+    && negation_v<true_type>  == false
+    && negation_v<false_type> == true
+);
+// disjunction
+static_assert(
+        conjunction_v<>
+    &&  conjunction_v<true_type, true_type>
+    &&  conjunction_v<true_type, true_type, true_type, true_type, true_type>
+    && !conjunction_v<true_type, false_type>
+    && !conjunction_v<true_type, true_type, true_type, false_type>
+);
+// conjunction
+static_assert(
+        disjunction_v<true_type, true_type>
+    &&  disjunction_v<true_type, true_type, true_type, true_type, true_type>
+    &&  disjunction_v<true_type, false_type>
+    &&  disjunction_v<true_type, true_type, true_type, false_type>
+    && !disjunction_v<>
+    && !disjunction_v<false_type>
+    && !disjunction_v<false_type, false_type>
+    && !disjunction_v<false_type, false_type, false_type>
+);
