@@ -391,3 +391,28 @@ static_assert(
     && !is_trivial_v<TestStructWithVirtualFunc>
     && !is_trivial_v<TestStructInheritPureVirtual>
 );
+// extent
+static_assert(
+       extent_v<int[3]>       == 3
+    && extent_v<int[3], 0>    == 3
+    && extent_v<int[3][4], 0> == 3
+    && extent_v<int[3][4], 1> == 4
+    && extent_v<int[3][4], 2> == 0
+    && extent_v<int[]>        == 0
+);
+// remove extents
+static_assert(
+       is_same_v<int   , remove_extent_t<int>>
+    && is_same_v<int   , remove_extent_t<int[]>>
+    && is_same_v<int   , remove_extent_t<int[1]>>
+    && is_same_v<int[2], remove_extent_t<int[1][2]>>
+);
+// remove all extents
+static_assert(
+       is_same_v<int, remove_all_extents_t<int>>
+    && is_same_v<int, remove_all_extents_t<int[]>>
+    && is_same_v<int, remove_all_extents_t<int[1]>>
+    && is_same_v<int, remove_all_extents_t<int[1][2]>>
+    && is_same_v<int, remove_all_extents_t<int[1][2][3]>>
+    && is_same_v<int, remove_all_extents_t<int[1][2][3][4]>>
+);

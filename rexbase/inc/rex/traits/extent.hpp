@@ -23,4 +23,20 @@ template <class t, usz l, unsigned n> struct extent<t[l], n>
 /// @brief The number of elements in the `n`-th dimension, for type `t`. 
 template <typename t, unsigned n = 0> inline constexpr usz extent_v = extent<t, n>::value;
 
+//
+
+template <typename t>        struct remove_extent       { using type = t; };
+template <typename t>        struct remove_extent<t[]>  { using type = t; };
+template <typename t, usz l> struct remove_extent<t[l]> { using type = t; };
+
+template <typename t> using remove_extent_t = typename remove_extent<t>::type;
+
+//
+
+template <typename t>        struct remove_all_extents       { using type = t; };
+template <typename t>        struct remove_all_extents<t[]>  { using type = typename remove_all_extents<t>::type; };
+template <typename t, usz l> struct remove_all_extents<t[l]> { using type = typename remove_all_extents<t>::type; };
+
+template <typename t> using remove_all_extents_t = typename remove_all_extents<t>::type;
+
 } // namespace rex
