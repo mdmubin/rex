@@ -11,9 +11,10 @@ template <typename t> struct is_integral
     <
         remove_cv_t<t>,
         // check if any of the types below is same as t with const volatile removed
-        char,          short,          int,          long,          long long,
+                 char,          short,          int,          long,          long long,
+          signed char,   signed short,   signed int,   signed long,   signed long long,
         unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long,
-        bool,          wchar_t,        wchar_t,      char16_t,      char32_t
+                 bool,        wchar_t,     char16_t,      char32_t
     >> {};
 
 /// @brief True if `t` is integer type, else false. 
