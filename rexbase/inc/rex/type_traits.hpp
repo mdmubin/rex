@@ -26,6 +26,7 @@
 #include "rex/traits/is_reference.hpp"
 #include "rex/traits/is_same.hpp"
 #include "rex/traits/is_scalar.hpp"
+#include "rex/traits/is_signed.hpp"
 #include "rex/traits/is_standard_layout.hpp"
 #include "rex/traits/is_trivial.hpp"
 #include "rex/traits/is_union.hpp"

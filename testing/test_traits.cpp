@@ -416,3 +416,42 @@ static_assert(
     && is_same_v<int, remove_all_extents_t<int[1][2][3]>>
     && is_same_v<int, remove_all_extents_t<int[1][2][3][4]>>
 );
+// is signed
+static_assert(
+        is_signed_v<signed>
+    &&  is_signed_v<signed char>
+    &&  is_signed_v<float>
+    &&  is_signed_v<double>
+    && !is_signed_v<unsigned>
+    && !is_signed_v<unsigned int>
+    && !is_signed_v<TestStruct>
+);
+// is unsigned
+static_assert(
+        is_unsigned_v<unsigned>
+    &&  is_unsigned_v<unsigned char>
+    &&  is_unsigned_v<unsigned int>
+    && !is_unsigned_v<signed>
+    && !is_unsigned_v<signed char>
+    && !is_unsigned_v<float>
+    && !is_unsigned_v<double>
+    && !is_unsigned_v<TestStruct>
+);
+// make signed
+static_assert(
+        is_same_v<signed char,         make_signed_t<char>>
+    &&  is_same_v<signed int,          make_signed_t<int>>
+    &&  is_same_v<signed volatile int, make_signed_t<volatile int>>
+    &&  is_same_v<signed short,        make_signed_t<short>>
+    &&  is_same_v<signed int,          make_signed_t<TestEnumType>>
+    &&  is_same_v<signed int,          make_signed_t<TestEnumClassType>>
+);
+// make unsigned
+static_assert(
+        is_same_v<unsigned char,         make_unsigned_t<char>>
+    &&  is_same_v<unsigned int,          make_unsigned_t<int>>
+    &&  is_same_v<unsigned volatile int, make_unsigned_t<volatile int>>
+    &&  is_same_v<unsigned short,        make_unsigned_t<short>>
+    &&  is_same_v<unsigned int,          make_unsigned_t<TestEnumType>>
+    &&  is_same_v<unsigned int,          make_unsigned_t<TestEnumClassType>>
+);
