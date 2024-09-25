@@ -33,10 +33,10 @@ template <typename t> struct remove_const                { using type = t; };
 template <typename t> struct remove_const<const t>       { using type = t; };
 template <typename t> struct remove_volatile             { using type = t; };
 template <typename t> struct remove_volatile<volatile t> { using type = t; };
-template <typename t> struct remove_cv
-{
-    using type = typename remove_volatile<typename remove_const<t>::type>::type;
-};
+template <typename t> struct remove_cv                   { using type = t; };
+template <typename t> struct remove_cv<const t>          { using type = t; };
+template <typename t> struct remove_cv<volatile t>       { using type = t; };
+template <typename t> struct remove_cv<const volatile t> { using type = t; };
 
 /// @brief An alias to a type that has const qualifier removed (if existed) from the type `t`.
 template <typename t> using remove_const_t = typename remove_const<t>::type;
@@ -47,10 +47,10 @@ template <typename t> using remove_cv_t = typename remove_cv<t>::type;
 
 // Non-standard extra
 
-template <typename t, typename u> struct match_cv                      { using type = t;                 };
-template <typename t, typename u> struct match_cv<const t, u>          { using type = add_const_t<u>;    };
-template <typename t, typename u> struct match_cv<volatile t, u>       { using type = add_volatile_t<u>; };
-template <typename t, typename u> struct match_cv<const volatile t, u> { using type = add_cv_t<u>;       };
+template <typename t, typename u> struct match_cv                      { using type = remove_cv_t<u>;                };
+template <typename t, typename u> struct match_cv<const t, u>          { using type = const remove_cv_t<u>;          };
+template <typename t, typename u> struct match_cv<volatile t, u>       { using type = volatile remove_cv_t<u>;       };
+template <typename t, typename u> struct match_cv<const volatile t, u> { using type = const volatile remove_cv_t<u>; };
 
 /// @brief An alias to a type that has const-volatile qualifier added to `u` such that the qualifiers match `t`.
 template <typename t, typename u> using match_cv_t = typename match_cv<t, u>::type; 
