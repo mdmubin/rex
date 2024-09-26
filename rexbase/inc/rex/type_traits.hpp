@@ -3,8 +3,12 @@
 #include "rex/traits/integral_constant.hpp"
 
 #include "rex/traits/alignment_of.hpp"
+#include "rex/traits/common_type.hpp"
+#include "rex/traits/conditional.hpp"
 #include "rex/traits/conjunction.hpp"
+#include "rex/traits/decay.hpp"
 #include "rex/traits/disjunction.hpp"
+#include "rex/traits/enable_if.hpp"
 #include "rex/traits/extent.hpp"
 #include "rex/traits/is_abstract.hpp"
 #include "rex/traits/is_aggregate.hpp"
@@ -35,3 +39,4 @@
 #include "rex/traits/is_union.hpp"
 #include "rex/traits/is_void.hpp"
 #include "rex/traits/rank.hpp"
+#include "rex/traits/underlying_type.hpp"

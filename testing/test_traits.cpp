@@ -26,7 +26,8 @@ struct TestInvocable {
     void operator()() {}
 };
 
-enum TestEnumType {};
+enum TestEnumType { TEST_ENUM_VAL = -1 };
+enum TestEnumTypeEx : u16 {};
 
 enum class TestEnumClassType {};
 
@@ -457,8 +458,8 @@ static_assert(
 );
 // negation
 static_assert(
-       is_same<false_type, typename negation<bool_constant<true>> ::type>::value
-    && is_same<true_type,  typename negation<bool_constant<false>>::type>::value
+       is_same_v<false_type, typename negation<bool_constant<true>> ::type>
+    && is_same_v<true_type,  typename negation<bool_constant<false>>::type>
     && negation_v<true_type>  == false
     && negation_v<false_type> == true
 );
@@ -480,4 +481,39 @@ static_assert(
     && !disjunction_v<false_type>
     && !disjunction_v<false_type, false_type>
     && !disjunction_v<false_type, false_type, false_type>
+);
+// enable if
+static_assert(
+        is_same_v<int, enable_if_t<true, int>>
+//  && !is_same_v<float, enable_if_t<false, int>> // should fail to compile
+);
+// conditional
+static_assert(
+       is_same_v<int,   conditional_t<true,  int, float>>
+    && is_same_v<float, conditional_t<false, int, float>>
+);
+// underlying type
+static_assert(
+        is_same_v<int, underlying_type_t<TestEnumType>>
+    &&  is_same_v<int, underlying_type_t<TestEnumClassType>>
+    &&  is_same_v<u16, underlying_type_t<TestEnumTypeEx>>
+);
+// decay
+static_assert(
+        is_same_v<decay_t<int>,        int>
+    && !is_same_v<decay_t<int>,        float>
+    &&  is_same_v<decay_t<int&>,       int>
+    &&  is_same_v<decay_t<int&&>,      int>
+    &&  is_same_v<decay_t<const int&>, int>
+    &&  is_same_v<decay_t<int[2]>,     int*>
+    && !is_same_v<decay_t<int[4][2]>,  int*>
+    && !is_same_v<decay_t<int[4][2]>,  int**>
+    &&  is_same_v<decay_t<int[4][2]>,  int(*)[2]>
+    &&  is_same_v<decay_t<int(int)>,   int(*)(int)>
+);
+// common type
+static_assert(
+        is_same_v<int, common_type_t<int, short, char, signed char>>
+    &&  is_same_v<TestStruct, common_type_t<TestStruct, TestStructFinal>>
+    &&  is_same_v<TestStructPureVirtualFunc, common_type_t<TestStructInheritPureVirtual, TestStructPureVirtualFunc>>
 );
