@@ -10,6 +10,7 @@
 #include "rex/traits/disjunction.hpp"
 #include "rex/traits/enable_if.hpp"
 #include "rex/traits/extent.hpp"
+#include "rex/traits/has_unique_repr.hpp"
 #include "rex/traits/is_abstract.hpp"
 #include "rex/traits/is_aggregate.hpp"
 #include "rex/traits/is_arithmetic.hpp"
