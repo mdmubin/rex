@@ -517,3 +517,36 @@ static_assert(
     &&  is_same_v<TestStruct, common_type_t<TestStruct, TestStructFinal>>
     &&  is_same_v<TestStructPureVirtualFunc, common_type_t<TestStructInheritPureVirtual, TestStructPureVirtualFunc>>
 );
+// is base of
+static_assert(
+        is_base_of_v<TestStruct, TestStructFinal>
+    &&  is_base_of_v<TestStructPureVirtualFunc, TestStructInheritPureVirtual>
+    && !is_base_of_v<TestStructFinal, TestStruct>
+    && !is_base_of_v<TestStructInheritPureVirtual, TestStructPureVirtualFunc>
+    && !is_base_of_v<int, signed int> // primitives
+);
+
+namespace {
+    struct TestPod { int data; };
+}
+
+// is pod
+static_assert(
+        is_pod_v<int>
+    &&  is_pod_v<TestEmptyStruct>
+    &&  is_pod_v<TestEmptyUnion>
+    &&  is_pod_v<TestUnion>
+    &&  is_pod_v<TestPod>
+    && !is_pod_v<TestStruct>
+    && !is_pod_v<TestStructPureVirtualFunc>
+    && !is_pod_v<TestStructFinal>
+    && !is_pod_v<TestStructInheritPureVirtual>
+);
+// is literal type
+static_assert(
+        is_literal_type_v<int>
+    &&  is_literal_type_v<TestStruct>
+    &&  is_literal_type_v<TestStructFinal>
+    && !is_literal_type_v<TestStructPureVirtualFunc>
+    && !is_literal_type_v<TestStructInheritPureVirtual>
+);
