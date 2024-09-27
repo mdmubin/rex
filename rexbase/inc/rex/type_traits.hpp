@@ -2,6 +2,8 @@
 
 #include "rex/traits/integral_constant.hpp"
 
+#include "rex/traits/aligned_storage.hpp"
+#include "rex/traits/aligned_union.hpp"
 #include "rex/traits/alignment_of.hpp"
 #include "rex/traits/common_type.hpp"
 #include "rex/traits/conditional.hpp"
