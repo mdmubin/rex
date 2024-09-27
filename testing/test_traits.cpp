@@ -550,3 +550,23 @@ static_assert(
     && !is_literal_type_v<TestStructPureVirtualFunc>
     && !is_literal_type_v<TestStructInheritPureVirtual>
 );
+namespace {
+struct TestDeletedDtorStruct { ~TestDeletedDtorStruct() = delete; };
+struct TestNoThrowDtorStruct { ~TestNoThrowDtorStruct() noexcept = default; };
+}
+// is destructible
+static_assert(
+        is_destructible_v<int>
+    &&  is_destructible_v<TestStruct>
+    &&  is_destructible_v<TestStructPureVirtualFunc>
+    && !is_destructible_v<void>
+    && !is_destructible_v<decltype(TestFunction)>
+    && !is_destructible_v<int[]>
+    && !is_destructible_v<TestDeletedDtorStruct>
+);
+// is nothrow destructible
+static_assert(
+        is_nothrow_destructible_v<int>
+    &&  is_nothrow_destructible_v<TestNoThrowDtorStruct>
+    && !is_nothrow_destructible_v<TestDeletedDtorStruct>
+);
