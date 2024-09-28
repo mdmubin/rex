@@ -570,3 +570,17 @@ static_assert(
     &&  is_nothrow_destructible_v<TestNoThrowDtorStruct>
     && !is_nothrow_destructible_v<TestDeletedDtorStruct>
 );
+// is convertible
+static_assert(
+        is_convertible_v<TestStructFinal*, TestStruct*>
+    && !is_convertible_v<TestStruct*, TestStructFinal*>
+    &&  is_convertible_v<TestStructInheritPureVirtual*, TestStructPureVirtualFunc*>
+    &&  is_convertible_v<TestEnumType, int>
+);
+// // is swappable
+static_assert(
+        is_swappable_v<int>
+    &&  is_swappable_v<TestStruct>
+    &&  is_swappable_v<TestStructFinal>
+    && !is_swappable_with_v<TestStruct&, TestStructFinal&>
+);
