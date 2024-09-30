@@ -24,6 +24,8 @@ auto TestLambda = [](){};
 
 struct TestInvocable {
     void operator()() {}
+    double operator()(char, int&);
+    float  operator()(int) { return 1.0; }
 };
 
 enum TestEnumType { TEST_ENUM_VAL = -1 };
@@ -525,11 +527,9 @@ static_assert(
     && !is_base_of_v<TestStructInheritPureVirtual, TestStructPureVirtualFunc>
     && !is_base_of_v<int, signed int> // primitives
 );
-
 namespace {
-    struct TestPod { int data; };
+struct TestPod { int data; };
 }
-
 // is pod
 static_assert(
         is_pod_v<int>
@@ -583,4 +583,26 @@ static_assert(
     &&  is_swappable_v<TestStruct>
     &&  is_swappable_v<TestStructFinal>
     && !is_swappable_with_v<TestStruct&, TestStructFinal&>
+);
+// result of & invoke result
+static_assert(
+       is_same_v<result_of_t<TestInvocable()>, void>
+    && is_same_v<result_of_t<TestInvocable(int)>, float>
+    && is_same_v<invoke_result_t<TestInvocable, char, int &>, double>
+    && is_same_v<invoke_result_t<decltype(&TestStruct::StaticFunction)>, void>
+);
+namespace {
+auto FunctionReturningFunc(char) -> int (*)();
+}
+// invocable && invocable_r
+static_assert(
+        is_invocable_v<TestStruct()>
+    &&  is_invocable_v<int()>
+    &&  is_invocable_r_v<int, int()>
+    &&  is_invocable_r_v<void, void(int), int>
+    &&  is_invocable_r_v<int(*)(), decltype(FunctionReturningFunc), char>
+    && !is_invocable_v<int(), int>
+    && !is_invocable_r_v<int*, int()>
+    && !is_invocable_r_v<void, void(int), void>
+    && !is_invocable_r_v<int(*)(), decltype(FunctionReturningFunc), void>
 );
