@@ -5,3 +5,4 @@
 #include "rex/config.hpp"
 #include "rex/types.hpp"
 #include "rex/assert.hpp"
+#include "rex/type_traits.hpp"
