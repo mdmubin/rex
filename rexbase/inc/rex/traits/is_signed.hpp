@@ -10,10 +10,10 @@
 
 namespace rex::impl {
 
-template <typename t, bool = is_arithmetic_v<t>> inline constexpr bool is_signed   = static_cast<t>(0) > static_cast<t>(-1);
-template <typename t, bool = is_arithmetic_v<t>> inline constexpr bool is_unsigned = static_cast<t>(0) < static_cast<t>(-1);
-template <typename t> inline constexpr bool is_signed  <t, false> = false;
-template <typename t> inline constexpr bool is_unsigned<t, false> = false;
+template <typename t, bool = is_arithmetic_v<t>> struct is_signed   : bool_constant<(static_cast<t>(0) > static_cast<t>(-1))> {};
+template <typename t, bool = is_arithmetic_v<t>> struct is_unsigned : bool_constant<(static_cast<t>(0) < static_cast<t>(-1))> {};
+template <typename t> struct is_signed  <t, false> : false_type {};
+template <typename t> struct is_unsigned<t, false> : false_type {};
 
 //
 
@@ -44,10 +44,8 @@ struct make_unsigned<t, false> {
 
 namespace rex {
 
-template <typename t> struct is_signed
-    : bool_constant<impl::is_signed<t>> {};
-template <typename t> struct is_unsigned
-    : bool_constant<impl::is_unsigned<t>> {};
+template <typename t> struct is_signed   : impl::is_signed<t>   {};
+template <typename t> struct is_unsigned : impl::is_unsigned<t> {};
 
 /// @brief True if `t` is a signed type, else false.
 template <typename t> inline constexpr bool is_signed_v = is_signed<t>::value;

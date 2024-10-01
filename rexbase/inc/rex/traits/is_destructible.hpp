@@ -28,15 +28,15 @@ struct destructible_helper<t, false>
 
 /* IS_DESTRUCTIBLE IMPL */
 
-template <typename t> inline constexpr bool is_destructible       = destructible_helper<t>::value;
-template <typename t> inline constexpr bool is_destructible<t&>   = true;
-template <typename t> inline constexpr bool is_destructible<t&&>  = true;
-template <typename t> inline constexpr bool is_destructible<t[]>  = false;
-template <>           inline constexpr bool is_destructible<void> = false;
+template <typename t> struct is_destructible       :  bool_constant<destructible_helper<t>::value> {};
+template <typename t> struct is_destructible<t&>   :  true_type  {};
+template <typename t> struct is_destructible<t&&>  :  true_type  {};
+template <typename t> struct is_destructible<t[]>  :  false_type {};
+template <>           struct is_destructible<void> :  false_type {};
 
 /* IS_NOTHROW_DESTRUCTIBLE HELPERS */
 
-template <typename t, bool = is_destructible<t>>
+template <typename t, bool = is_destructible<t>::value>
 struct nothrow_destructible_helper
 {
     static constexpr bool value = noexcept(declval<t>().~t());
@@ -49,17 +49,18 @@ struct nothrow_destructible_helper<t, false>
 
 /* IS_NOTHROW_DESTRUCTIBLE IMPL */
 
-template <typename t> inline constexpr bool is_nothrow_destructible      = nothrow_destructible_helper<t>::value;
-template <typename t> inline constexpr bool is_nothrow_destructible<t&>  = true;
-template <typename t> inline constexpr bool is_nothrow_destructible<t&&> = true;
-template <typename t, usz n> inline constexpr bool is_nothrow_destructible<t[n]> = is_nothrow_destructible<t>;
+template <typename t>        struct is_nothrow_destructible       : bool_constant<nothrow_destructible_helper<t>::value> {};
+template <typename t>        struct is_nothrow_destructible<t&>   : true_type {};
+template <typename t>        struct is_nothrow_destructible<t&&>  : true_type {};
+template <typename t, usz n> struct is_nothrow_destructible<t[n]> : is_nothrow_destructible<t> {};
 
 } // namespace rex::impl
 
 namespace rex {
 
-template <typename t> struct is_destructible
-    : bool_constant<impl::is_destructible<t>> {};
+template <typename t>
+struct is_destructible
+    : impl::is_destructible<t> {};
 
 template <typename t>
 struct is_trivially_destructible
@@ -71,9 +72,7 @@ struct is_trivially_destructible
 
 template <typename t>
 struct is_nothrow_destructible
-    : bool_constant<impl::is_nothrow_destructible<t>>
-{
-};
+    : impl::is_nothrow_destructible<t> {};
 
 /// @brief True if `t` is destructible, else false.
 template <typename t> inline constexpr bool is_destructible_v = is_destructible<t>::value;

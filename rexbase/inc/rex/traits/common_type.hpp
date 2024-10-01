@@ -29,7 +29,6 @@ struct common_type<t, u, rest...>
 };
 
 /// @brief An alias to a type such that all types in `...t` can be implicitly converted to if such a type exists.
-template <typename... t>
-using common_type_t = typename common_type<t...>::type;
+template <typename... t> using common_type_t = typename common_type<t...>::type;
 
 } // namespace rex

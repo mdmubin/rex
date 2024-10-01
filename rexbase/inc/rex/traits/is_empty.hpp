@@ -2,8 +2,7 @@
 
 #include "rex/traits/integral_constant.hpp"
 
-namespace rex
-{
+namespace rex {
 
 template <typename t> struct is_empty
     : bool_constant<__is_empty(t)> {};

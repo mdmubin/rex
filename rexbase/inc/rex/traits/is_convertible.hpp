@@ -8,7 +8,8 @@ namespace rex::impl {
 // HELPER
 
 template <typename t, typename u>
-struct convertible_helper {
+struct convertible_helper
+{
     template <typename a> static void check(a);
 
     template <typename a, typename b, typename = decltype(check<b>(declval<a>()))>
@@ -22,15 +23,15 @@ struct convertible_helper {
 
 // IMPL
 
-template <typename t, typename u> inline constexpr bool convertible = convertible_helper<t, u>::value;
+template <typename t, typename u>
+struct is_convertible
+    : bool_constant<convertible_helper<t, u>::value> {};
 
 } // namespace rex::impl
 
 namespace rex {
 
-template <typename t, typename u>
-struct is_convertible
-    : bool_constant<impl::convertible<t, u>> {};
+template <typename t, typename u> struct is_convertible : impl::is_convertible<t, u> {};
 
 /// @brief True if `t` may be convertible to `u`, else false.
 template <typename t, typename u> inline constexpr bool is_convertible_v = is_convertible<t, u>::value;

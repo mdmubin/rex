@@ -4,8 +4,7 @@
 #include "rex/traits/is_const_volatile.hpp"
 #include "rex/traits/is_reference.hpp"
 
-namespace rex
-{
+namespace rex {
 
 template <typename t> struct is_function
     : bool_constant<!is_const_v<const t> && !is_reference_v<t>> {};

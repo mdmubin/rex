@@ -11,8 +11,12 @@
 namespace rex {
 
 template <typename t>
-struct decay {
+class decay
+{
+  private:
     using noref = remove_reference_t<t>;
+
+  public:
     using type  = conditional_t
     <
         is_array_v<noref>,

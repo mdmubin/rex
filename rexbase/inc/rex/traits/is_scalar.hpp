@@ -8,7 +8,7 @@
 #include "rex/traits/is_pointer.hpp"
 
 namespace rex {
-    
+
 template <typename t> struct is_scalar
     : bool_constant
     <
