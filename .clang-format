@@ -13,3 +13,6 @@ AlignConsecutiveAssignments: Consecutive
 
 # templates
 AlwaysBreakTemplateDeclarations: Yes
+
+# no-except specifiers
+AllowBreakBeforeNoexceptSpecifier: Always
