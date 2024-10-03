@@ -142,7 +142,7 @@ template <> struct numeric_limits<float> : impl::float_limits_base
     static constexpr float denorm_min()    noexcept { return FLT_TRUE_MIN; }
     static constexpr float epsilon()       noexcept { return FLT_EPSILON; }
     static constexpr float infinity()      noexcept { return __builtin_huge_valf(); }
-    static constexpr float lowest()        noexcept { return -max(); }
+    static constexpr float lowest()        noexcept { return -FLT_MAX; }
     static constexpr float min()           noexcept { return FLT_MIN; }
     static constexpr float max()           noexcept { return FLT_MAX; }
     static constexpr float quiet_NaN()     noexcept { return __builtin_nanf(""); }
@@ -163,7 +163,7 @@ template <> struct numeric_limits<double> : impl::float_limits_base
     static constexpr double denorm_min()    noexcept { return DBL_TRUE_MIN; }
     static constexpr double epsilon()       noexcept { return DBL_EPSILON; }
     static constexpr double infinity()      noexcept { return __builtin_huge_val(); }
-    static constexpr double lowest()        noexcept { return -max(); }
+    static constexpr double lowest()        noexcept { return -DBL_MAX; }
     static constexpr double min()           noexcept { return DBL_MIN; }
     static constexpr double max()           noexcept { return DBL_MAX; }
     static constexpr double quiet_NaN()     noexcept { return __builtin_nan(""); }
@@ -184,7 +184,7 @@ template <> struct numeric_limits<long double> : impl::float_limits_base
     static constexpr long double denorm_min()    noexcept { return LDBL_TRUE_MIN; }
     static constexpr long double epsilon()       noexcept { return LDBL_EPSILON; }
     static constexpr long double infinity()      noexcept { return __builtin_huge_vall(); }
-    static constexpr long double lowest()        noexcept { return -max(); }
+    static constexpr long double lowest()        noexcept { return -LDBL_MAX; }
     static constexpr long double min()           noexcept { return LDBL_MIN; }
     static constexpr long double max()           noexcept { return LDBL_MAX; }
     static constexpr long double quiet_NaN()     noexcept { return __builtin_nanl(""); }
