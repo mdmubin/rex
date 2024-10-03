@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cfloat>
-#include <cstdint>
-#include <cstddef>
+#include <float.h>
+#include <stdint.h>
+#include <stddef.h>
 
 /* Signed Integer Types */
 
