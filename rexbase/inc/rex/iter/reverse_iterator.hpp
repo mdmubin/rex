@@ -43,8 +43,6 @@ class reverse_iterator
     constexpr iterator_type base() const { return m_iterator; }
 
   public: /* OPERATORS */
-    // clang-format off
-
     template <typename other_t>
     constexpr this_type &operator=(const reverse_iterator<other_t> &other)
     {
@@ -61,16 +59,14 @@ class reverse_iterator
     constexpr this_type &operator++() { --m_iterator; return *this; }
     constexpr this_type &operator--() { ++m_iterator; return *this; }
 
-    constexpr this_type operator++(int) { auto tmp = m_iterator; --m_iterator; return tmp; }
-    constexpr this_type operator--(int) { auto tmp = m_iterator; ++m_iterator; return tmp; }
+    constexpr this_type operator++(int) { auto tmp = *this; --m_iterator; return tmp; }
+    constexpr this_type operator--(int) { auto tmp = *this; ++m_iterator; return tmp; }
 
     constexpr this_type operator+(difference_type n) const { return this_type{m_iterator - n}; }
     constexpr this_type operator-(difference_type n) const { return this_type{m_iterator + n}; }
 
     constexpr this_type &operator+=(difference_type n) { m_iterator -= n; return *this; }
     constexpr this_type &operator-=(difference_type n) { m_iterator += n; return *this; }
-
-    // clang-format on
 };
 
 } // namespace rex
