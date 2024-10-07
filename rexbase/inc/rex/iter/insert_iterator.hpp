@@ -53,4 +53,14 @@ class insert_iterator
     this_type &operator--() { /* no-op. return self. */ return *this; }
 };
 
+//
+
+
+/// @brief Construct and return an insert iterator using the supplied container and iterator.
+template <typename container_t>
+insert_iterator<container_t> make_inserter(container_t &container, typename container_t::iterator iter)
+{
+    return insert_iterator<container_t>{container, iter};
+}
+
 } // namespace rex

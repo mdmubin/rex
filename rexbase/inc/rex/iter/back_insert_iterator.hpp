@@ -39,4 +39,13 @@ class back_insert_iterator
     this_type  operator++(int) { /* no-op. return self. */ return *this; }
 };
 
+//
+
+/// @brief Construct and return a back insert iterator using the supplied container.
+template <typename container_t>
+back_insert_iterator<container_t> back_inserter(container_t &container)
+{
+    return back_insert_iterator<container_t>{container};
+}
+
 } // namespace rex

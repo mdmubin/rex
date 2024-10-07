@@ -69,4 +69,13 @@ class reverse_iterator
     constexpr this_type &operator-=(difference_type n) { m_iterator += n; return *this; }
 };
 
+//
+
+/// @brief Construct and return a reverse iterator using the supplied iterator.
+template <typename iter_t>
+constexpr reverse_iterator<iter_t> make_reverse_iterator(iter_t iter)
+{
+    return reverse_iterator<iter_t>{iter};
+}
+
 } // namespace rex

@@ -39,4 +39,13 @@ class front_insert_iterator
     this_type  operator++(int) { /* no-op. return self. */ return *this; }
 };
 
+//
+
+/// @brief Construct and return a front insert iterator using the supplied container.
+template <typename container_t>
+front_insert_iterator<container_t> front_inserter(container_t &container)
+{
+    return front_insert_iterator<container_t>{container};
+}
+
 } // namespace rex

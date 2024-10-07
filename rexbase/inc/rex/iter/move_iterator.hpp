@@ -75,4 +75,13 @@ struct move_iterator
     constexpr this_type &operator-=(difference_type n) { m_iterator -= n; return *this; }
 };
 
+//
+
+/// @brief Construct and return a move iterator using the given iterator.
+template <typename iter_t>
+move_iterator<iter_t> make_move_iterator(iter_t iter)
+{
+    return move_iterator<iter_t>{iter};
+}
+
 } // namespace rex
