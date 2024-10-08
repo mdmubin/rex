@@ -78,4 +78,48 @@ constexpr reverse_iterator<iter_t> make_reverse_iterator(iter_t iter)
     return reverse_iterator<iter_t>{iter};
 }
 
+//
+
+template <typename i, typename j>
+constexpr bool operator==(const reverse_iterator<i> &l, const reverse_iterator<j> &r)
+{
+    return l.base() == r.base();
+}
+template <typename i, typename j>
+constexpr bool operator!=(const reverse_iterator<i> &l, const reverse_iterator<j> &r)
+{
+    return l.base() != r.base();
+}
+template <typename i, typename j>
+constexpr bool operator<(const reverse_iterator<i> &l, const reverse_iterator<j> &r)
+{
+    return l.base() > r.base();
+}
+template <typename i, typename j>
+constexpr bool operator<=(const reverse_iterator<i> &l, const reverse_iterator<j> &r)
+{
+    return l.base() >= r.base();
+}
+template <typename i, typename j>
+constexpr bool operator>(const reverse_iterator<i> &l, const reverse_iterator<j> &r)
+{
+    return l.base() < r.base();
+}
+template <typename i, typename j>
+constexpr bool operator>=(const reverse_iterator<i> &l, const reverse_iterator<j> &r)
+{
+    return l.base() <= r.base();
+}
+
+template <typename i>
+constexpr reverse_iterator<i> operator+(typename reverse_iterator<i>::difference_type n, const reverse_iterator<i> &r)
+{
+    return reverse_iterator<i>{r.base() - n};
+}
+template <typename i>
+constexpr reverse_iterator<i> operator-(typename reverse_iterator<i>::difference_type n, const reverse_iterator<i> &r)
+{
+    return reverse_iterator<i>{r.base() + n};
+}
+
 } // namespace rex
