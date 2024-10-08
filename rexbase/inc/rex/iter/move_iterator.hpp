@@ -84,4 +84,48 @@ move_iterator<iter_t> make_move_iterator(iter_t iter)
     return move_iterator<iter_t>{iter};
 }
 
+//
+
+template <typename i, typename j>
+constexpr bool operator==(const move_iterator<i> &l, const move_iterator<j> &r)
+{
+    return l.base() == r.base();
+}
+template <typename i, typename j>
+constexpr bool operator!=(const move_iterator<i> &l, const move_iterator<j> &r)
+{
+    return !(l == r);
+}
+template <typename i, typename j>
+constexpr bool operator<(const move_iterator<i> &l, const move_iterator<j> &r)
+{
+    return l.base() < r.base();
+}
+template <typename i, typename j>
+constexpr bool operator<=(const move_iterator<i> &l, const move_iterator<j> &r)
+{
+    return !(r < l);
+}
+template <typename i, typename j>
+constexpr bool operator>(const move_iterator<i> &l, const move_iterator<j> &r)
+{
+    return r < l;
+}
+template <typename i, typename j>
+constexpr bool operator>=(const move_iterator<i> &l, const move_iterator<j> &r)
+{
+    return !(l < r);
+}
+
+template <typename i>
+constexpr move_iterator<i> operator+(typename move_iterator<i>::difference_type n, const move_iterator<i> &m)
+{
+    return m + n;
+}
+template <typename i>
+constexpr move_iterator<i> operator-(typename move_iterator<i>::difference_type n, const move_iterator<i> &m)
+{
+    return m - n;
+}
+
 } // namespace rex
