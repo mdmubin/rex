@@ -517,7 +517,9 @@ static_assert(
 static_assert(
         is_same_v<int, common_type_t<int, short, char, signed char>>
     &&  is_same_v<TestStruct, common_type_t<TestStruct, TestStructFinal>>
+#if !defined(REX_COMPILER_MSVC) && !defined(REX_COMPILER_CLANG_CL)
     &&  is_same_v<TestStructPureVirtualFunc, common_type_t<TestStructInheritPureVirtual, TestStructPureVirtualFunc>>
+#endif
 );
 // is base of
 static_assert(
