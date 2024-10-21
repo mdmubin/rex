@@ -19,7 +19,7 @@ namespace rex
 template <typename t>
 add_rvalue_reference_t<t> declval() noexcept
 {
-    static_assert(impl::declval_assert_value<t>::value, "declval() must not be used!");
+    static_assert(impl::declval_assert_value<t>::value, "declval() must not be evaluated!");
 }
 
 } // namespace rex

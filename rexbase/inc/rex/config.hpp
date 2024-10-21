@@ -86,3 +86,6 @@
 
 // Convert to wide char string
 #define REX_STRINGIFY_W(...) REX_CONCAT(L, REX_STRINGIFY(__VA_ARGS__))
+
+// Mark a value as unused.
+#define REX_UNUSED(X) static_cast<void>(X)

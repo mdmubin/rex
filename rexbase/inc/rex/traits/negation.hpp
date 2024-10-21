@@ -5,7 +5,7 @@
 namespace rex {
 
 template <typename t> struct negation 
-    : bool_constant<!bool(t::value)> {};
+    : bool_constant<!static_cast<bool>(t::value)> {};
 
 /// @brief Negates the integer value of `t`.
 /// @note `t` is expected to be an `integral_constant` type.

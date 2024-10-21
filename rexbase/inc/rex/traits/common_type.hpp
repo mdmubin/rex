@@ -18,7 +18,7 @@ struct common_type<t> : common_type<t, t>
 template <typename t, typename u>
 struct common_type<t, u>
 {
-    /* sizeof...(t) == 2, decayed type of a common type set by the compiler. */
+    /* sizeof...(t) == 2, decayed type of common type set by the compiler. */
     using type = decay_t<decltype(false ? declval<t>() : declval<u>())>;
 };
 template <typename t, typename u, typename... rest>

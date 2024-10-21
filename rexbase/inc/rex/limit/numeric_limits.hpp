@@ -3,7 +3,6 @@
 #include <limits.h>
 #include <float.h>
 
-#include "rex/config.hpp"
 #include "rex/limit/float_denorm_style.hpp"
 #include "rex/limit/float_round_style.hpp"
 #include "rex/traits/is_signed.hpp"
