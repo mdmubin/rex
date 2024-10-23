@@ -1,8 +1,9 @@
 #pragma once
 
-#include <limits.h>
-#include <float.h>
+#include <climits>
+#include <cfloat>
 
+#include "rex/config.hpp"
 #include "rex/limit/float_denorm_style.hpp"
 #include "rex/limit/float_round_style.hpp"
 #include "rex/traits/is_signed.hpp"
@@ -49,7 +50,9 @@ struct integral_limits_base : numeric_limits_base
     static constexpr bool is_modulo      = is_unsigned_v<t>;
     static constexpr bool is_signed      = is_signed_v<t>;
     static constexpr bool is_specialized = true;
+#if !defined(REX_COMPILER_MSVC) && !defined(REX_COMPILER_CLANG_CL) // msvc does not trap for integral types (from STL)
     static constexpr bool traps          = true;
+#endif
 
     static constexpr int digits   = sizeof(t) * 8 - is_signed_v<t>;
     static constexpr int digits10 = digits * 30'103 / 100'000;
@@ -114,23 +117,26 @@ struct numeric_limits<bool> : impl::integral_limits_base<bool, false, true>
     static constexpr bool is_modulo = false;
 };
 
-template <> struct numeric_limits<char>               : impl::integral_limits_base<char,               CHAR_MIN,      CHAR_MAX>       {};
-template <> struct numeric_limits<signed char>        : impl::integral_limits_base<signed char,        SCHAR_MIN,     SCHAR_MAX>      {};
-template <> struct numeric_limits<unsigned char>      : impl::integral_limits_base<unsigned char,      0,             UCHAR_MAX>      {};
-template <> struct numeric_limits<short>              : impl::integral_limits_base<short,              SHRT_MIN,      SHRT_MAX>       {};
-template <> struct numeric_limits<unsigned short>     : impl::integral_limits_base<unsigned short,     0,             USHRT_MAX>      {};
-template <> struct numeric_limits<int>                : impl::integral_limits_base<int,                INT_MIN,       INT_MAX>        {};
-template <> struct numeric_limits<unsigned int>       : impl::integral_limits_base<unsigned int,       0,             UINT_MAX>       {};
-template <> struct numeric_limits<long>               : impl::integral_limits_base<long,               LONG_MIN,      LONG_MAX>       {};
-template <> struct numeric_limits<unsigned long>      : impl::integral_limits_base<unsigned long,      0,             ULONG_MAX>      {};
-template <> struct numeric_limits<long long>          : impl::integral_limits_base<long long,          LONG_LONG_MIN, LONG_LONG_MAX>  {};
-template <> struct numeric_limits<unsigned long long> : impl::integral_limits_base<unsigned long long, 0,             ULONG_LONG_MAX> {};
+template <> struct numeric_limits<char>               : impl::integral_limits_base<char,               CHAR_MIN,  CHAR_MAX>         {};
+template <> struct numeric_limits<signed char>        : impl::integral_limits_base<signed char,        SCHAR_MIN, SCHAR_MAX>        {};
+template <> struct numeric_limits<unsigned char>      : impl::integral_limits_base<unsigned char,      0,         UCHAR_MAX>        {};
+template <> struct numeric_limits<short>              : impl::integral_limits_base<short,              SHRT_MIN,  SHRT_MAX>         {};
+template <> struct numeric_limits<unsigned short>     : impl::integral_limits_base<unsigned short,     0,         USHRT_MAX>        {};
+template <> struct numeric_limits<int>                : impl::integral_limits_base<int,                INT_MIN,   INT_MAX>          {};
+template <> struct numeric_limits<unsigned int>       : impl::integral_limits_base<unsigned int,       0,         UINT_MAX>         {};
+template <> struct numeric_limits<long>               : impl::integral_limits_base<long,               LONG_MIN,  LONG_MAX>         {};
+template <> struct numeric_limits<unsigned long>      : impl::integral_limits_base<unsigned long,      0,         ULONG_MAX>        {};
+template <> struct numeric_limits<long long>          : impl::integral_limits_base<long long,          LLONG_MIN, LLONG_MAX>        {};
+template <> struct numeric_limits<unsigned long long> : impl::integral_limits_base<unsigned long long, 0,         ULLONG_MAX>       {};
+template <> struct numeric_limits<wchar_t>            : impl::integral_limits_base<wchar_t,            WCHAR_MIN, WCHAR_MAX>        {};
+template <> struct numeric_limits<char16_t>           : impl::integral_limits_base<char16_t,           0,         UINT_LEAST16_MAX> {};
+template <> struct numeric_limits<char32_t>           : impl::integral_limits_base<char32_t,           0,         UINT_LEAST32_MAX> {};
 
 //
 
 template <> struct numeric_limits<float> : impl::float_limits_base
 {
-    static constexpr int digits         = FLT_DIG;
+    static constexpr int digits         = FLT_MANT_DIG;
     static constexpr int digits10       = FLT_DIG;
     static constexpr int max_digits10   = FLT_DECIMAL_DIG;
     static constexpr int max_exponent   = FLT_MAX_EXP;
@@ -151,7 +157,7 @@ template <> struct numeric_limits<float> : impl::float_limits_base
 
 template <> struct numeric_limits<double> : impl::float_limits_base
 {
-    static constexpr int digits         = DBL_DIG;
+    static constexpr int digits         = DBL_MANT_DIG;
     static constexpr int digits10       = DBL_DIG;
     static constexpr int max_digits10   = DBL_DECIMAL_DIG;
     static constexpr int max_exponent   = DBL_MAX_EXP;
@@ -170,9 +176,39 @@ template <> struct numeric_limits<double> : impl::float_limits_base
     static constexpr double signaling_NaN() noexcept { return __builtin_nans(""); }
 };
 
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL) // helper defines for long double.
+    static_assert(
+        sizeof(double) == sizeof(long double),
+        "MSVC specific, this should not fail. `double` is expected to be an identical type to `long double`."
+        "See: https://learn.microsoft.com/en-us/cpp/c-language/type-long-double"
+    );
+
+    #if !defined(LDBL_DECIMAL_DIG)
+        #define LDBL_DECIMAL_DIG DBL_DECIMAL_DIG
+        #define REX_LDBL_DECIMAL_DIG 1
+    #endif
+
+    #if !REX_HAS_BUILTIN(__builtin_huge_vall)
+        #define __builtin_huge_vall __builtin_huge_val
+        #define REX_BUILTIN_HUGE_VALL_DEFINED 1
+    #endif
+
+    #if !REX_HAS_BUILTIN(__builtin_nanl)
+        #define __builtin_nanl __builtin_nan
+        #define REX_BUILTIN_NANL_DEFINED 1
+    #endif
+
+    #if !REX_HAS_BUILTIN(__builtin_nansl)
+        #define __builtin_nansl __builtin_nans
+        #define REX_BUILTIN_NANSL_DEFINED 1
+    #endif
+
+    #define REX_LDBL_ADDITIONAL_DEFINITIONS 1
+#endif
+
 template <> struct numeric_limits<long double> : impl::float_limits_base
 {
-    static constexpr int digits         = LDBL_DIG;
+    static constexpr int digits         = LDBL_MANT_DIG;
     static constexpr int digits10       = LDBL_DIG;
     static constexpr int max_digits10   = LDBL_DECIMAL_DIG;
     static constexpr int max_exponent   = LDBL_MAX_EXP;
@@ -190,5 +226,25 @@ template <> struct numeric_limits<long double> : impl::float_limits_base
     static constexpr long double round_error()   noexcept { return 0.5f; }
     static constexpr long double signaling_NaN() noexcept { return __builtin_nansl(""); }
 };
+
+#if defined(REX_LDBL_ADDITIONAL_DEFINITIONS)
+    #undef REX_LDBL_ADDITIONAL_DEFINITIONS
+    #if defined(REX_LDBL_DECIMAL_DIG)
+        #undef LDBL_DECIMAL_DIG
+        #undef REX_LDBL_DECIMAL_DIG
+    #endif
+    #if defined(REX_BUILTIN_HUGE_VALL_DEFINED)
+        #undef __builtin_huge_vall
+        #undef REX_BUILTIN_HUGE_VALL_DEFINED
+    #endif
+    #if defined(REX_BUILTIN_NANL_DEFINED)
+        #undef __builtin_nanl
+        #undef REX_BUILTIN_NANL_DEFINED
+    #endif
+    #if defined(REX_BUILTIN_NANSL_DEFINED)
+        #undef __builtin_nansl
+        #undef REX_BUILTIN_NANSL_DEFINED
+    #endif
+#endif
 
 } // namespace rex

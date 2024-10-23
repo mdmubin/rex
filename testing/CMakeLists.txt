@@ -2,6 +2,7 @@ project(rex_tests)
 
 set(rex_base_test_src
     test_assert.cpp
+    test_limits.cpp
     test_traits.cpp
     test_types.cpp
 )
