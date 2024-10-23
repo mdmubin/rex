@@ -2,7 +2,6 @@
 
 #include "rex/iter/iterator_tags.hpp"
 #include "rex/iter/iterator_traits.hpp"
-#include "rex/traits/is_base_of.hpp"
 
 namespace rex::impl
 {

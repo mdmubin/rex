@@ -10,7 +10,7 @@ struct integral_constant {
 
     static constexpr value_type value = val;
 
-    constexpr operator   value_type() const noexcept { return value; }
+    constexpr explicit operator value_type() const noexcept { return value; }
     constexpr value_type operator()() const noexcept { return value; }
 };
 

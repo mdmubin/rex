@@ -94,9 +94,9 @@ template <typename>                  struct result_of;
 template <typename f, typename... a> struct result_of<f(a...)> : impl::invoke_result<void, f, a...> {};
 template <typename f, typename... a> struct invoke_result      : impl::invoke_result<void, f, a...> {};
 
-/// @brief An alias to the the type returned by invoking `t`.
+/// @brief An alias to the type returned by invoking `t`.
 template <typename t> using result_of_t = typename result_of<t>::type;
-/// @brief An alias to the the type returned by invoking `t` using the arguments `...u`.
+/// @brief An alias to the type returned by invoking `t` using the arguments `...u`.
 template <typename t, typename...u> using invoke_result_t = typename invoke_result<t, u...>::type;
 
 } // namespace rex

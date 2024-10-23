@@ -8,6 +8,7 @@ set(rex_src_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(rex_base_inc
     ${rex_inc_dir}/rex/assert.hpp
     ${rex_inc_dir}/rex/config.hpp
+    ${rex_inc_dir}/rex/iterator.hpp
     ${rex_inc_dir}/rex/limits.hpp
     ${rex_inc_dir}/rex/types.hpp
     ${rex_inc_dir}/rex/type_traits.hpp

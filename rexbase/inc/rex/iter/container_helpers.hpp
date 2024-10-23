@@ -2,6 +2,7 @@
 
 #include <initializer_list>
 
+#include "rex/config.hpp"
 #include "rex/iter/reverse_iterator.hpp"
 #include "rex/types.hpp"
 
@@ -100,8 +101,8 @@ constexpr reverse_iterator<const elem_t *> rbegin(std::initializer_list<elem_t> 
 
 /// @brief Get a const reverse iterator to the beginning of the given container.
 template <typename container_t>
-constexpr auto crbegin(const container_t &container)
-    noexcept(noexcept(rbegin(container))) -> decltype(rbegin(container))
+constexpr auto crbegin(const container_t &container) noexcept(noexcept(rbegin(container)))
+    -> decltype(rbegin(container))
 {
     return rbegin(container);
 }
@@ -156,6 +157,7 @@ constexpr auto size(const container_t &container) -> decltype(container.size())
 template <typename elem_t, usz arrlen>
 constexpr auto size(const elem_t (&array)[arrlen]) noexcept
 {
+    REX_UNUSED(array);
     return arrlen;
 }
 
@@ -172,6 +174,7 @@ constexpr auto empty(const container_t &container) -> decltype(container.empty()
 template <typename elem_t, usz arrlen>
 constexpr bool empty(const elem_t (&array)[arrlen])
 {
+    REX_UNUSED(array);
     return false;
 }
 
