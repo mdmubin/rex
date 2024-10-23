@@ -74,6 +74,13 @@
     #define REX_CURRENT_FUNC __PRETTY_FUNCTION__
 #endif
 
+/* HELPER for __has_builtin */
+#ifndef __has_builtin
+    #define REX_HAS_BUILTIN(X) 0
+#else
+    #define REX_HAS_BUILTIN(X) __has_builtin(X)
+#endif
+
 /* MISC. MACROS */
 
 // Concatenate two raw tokens
