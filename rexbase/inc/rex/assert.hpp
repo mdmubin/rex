@@ -34,3 +34,14 @@ void assert_fail(cstr cnd, cstr msg, cstr file, cstr func, i32 line);
     #define REX_ASSERT(...) static_cast<void>(0)
     #define REX_ASSERT_MSG(...) static_cast<void>(0)
 #endif
+
+/* VERIFY MACROS */
+
+// Verify a condition is satisfied. Report failure and terminate if verification fails.
+#define REX_VERIFY(cnd)                                                                                                \
+    ((cnd) ? static_cast<void>(0)                                                                                      \
+           : rex::assert_fail(REX_STRINGIFY(cnd), "", REX_CURRENT_FILE, REX_CURRENT_FUNC, REX_CURRENT_LINE))
+// Verify a condition is satisfied. Report failure with a message and terminate if verification fails.
+#define REX_VERIFY_MSG(cnd, msg)                                                                                       \
+    ((cnd) ? static_cast<void>(0)                                                                                      \
+           : rex::assert_fail(REX_STRINGIFY(cnd), msg, REX_CURRENT_FILE, REX_CURRENT_FUNC, REX_CURRENT_LINE))
