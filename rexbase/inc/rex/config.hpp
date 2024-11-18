@@ -75,10 +75,17 @@
 #endif
 
 /* HELPER for __has_builtin */
-#ifndef __has_builtin
-    #define REX_HAS_BUILTIN(X) 0
-#else
+#if defined(__has_builtin)
     #define REX_HAS_BUILTIN(X) __has_builtin(X)
+#else
+    #define REX_HAS_BUILTIN(X) 0
+#endif
+
+/* UNREACHABLE */
+#if defined(REX_COMPILER_MSVC)
+    #define REX_UNREACHABLE() __assume(false)
+#elif REX_HAS_BUILTIN(__builtin_unreachable)
+    #define REX_UNREACHABLE() __builtin_unreachable()
 #endif
 
 /* MISC. MACROS */
