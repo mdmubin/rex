@@ -45,8 +45,27 @@
         default: /* release/acq_rel pruned by REX_VERIFY_ATOMIC_LOAD_BARRIER, and no barrier for relax */ break; \
         } \
     } while (0)
+#define REX_PLACE_ATOMIC_RMW_BARRIER_1(order)                     \
+    do {                                                          \
+        switch (order) {                                          \
+        case memory_order_release:                                \
+        case memory_order_acq_rel:                                \
+        case memory_order_seq_cst: REX_COMPILER_BARRIER(); break; \
+        default: /* no barrier */ break;                          \
+        }                                                         \
+    } while (0)
+#define REX_PLACE_ATOMIC_RMW_BARRIER_2(order)                     \
+    do {                                                          \
+        switch (order) {                                          \
+        case memory_order_consume:                                \
+        case memory_order_acquire:                                \
+        case memory_order_acq_rel:                                \
+        case memory_order_seq_cst: REX_COMPILER_BARRIER(); break; \
+        default: /* no barrier */ break;                          \
+        }                                                         \
+    } while (0)
 
-//
+// clang-format on
 
 namespace rex::impl
 {
@@ -56,7 +75,7 @@ struct atomic_operations
 { // clang-format off
     static_assert(
         sizeof(t) == 1 || sizeof(t) == 2 || sizeof(t) == 4 || sizeof(t) == 8 || sizeof(t) == 16,
-        "Lockfree atomic operations are only supported for data that has the width of an integral type. "
+        "Atomic operations are only supported for data that has the width of an integral type. "
         "(i.e. sizeof(t) is 1, 2, 4, 8 or 16 bytes)"
     );
 }; // clang-format on
@@ -98,6 +117,22 @@ struct atomic_operations<t, 1>
             REX_UNREACHABLE();
         }
     }
+
+    static t exchange(t &storage, t value, memory_order order)
+    {
+        REX_ASSERT_MSG(order <= rex::memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+#if defined(REX_COMPILER_MSVC)
+        // NOTE: MSVC STL doesn't use any barrier, so is it ok if we also omit barriers in our own implementation?
+        auto result = _InterlockedExchange8(addressof(reinterpret_cast<volatile char &>(storage)),
+                                            reinterpret_cast<char &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        REX_PLACE_ATOMIC_RMW_BARRIER_1(order);
+        __asm__ __volatile__("xchg %0, %1" : "+q"(value) : "m"(storage) : "memory");
+        REX_PLACE_ATOMIC_RMW_BARRIER_2(order);
+        return value;
+#endif
+    }
 };
 
 template <typename t>
@@ -136,6 +171,21 @@ struct atomic_operations<t, 2>
         default:
             REX_UNREACHABLE();
         }
+    }
+
+    static t exchange(t &storage, t value, memory_order order)
+    {
+        REX_ASSERT_MSG(order <= rex::memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+#if defined(REX_COMPILER_MSVC)
+        auto result = _InterlockedExchange16(addressof(reinterpret_cast<volatile short &>(storage)),
+                                             reinterpret_cast<short &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        REX_PLACE_ATOMIC_RMW_BARRIER_1(order);
+        __asm__ __volatile__("xchg %0, %1" : "+r"(value) : "m"(storage) : "memory");
+        REX_PLACE_ATOMIC_RMW_BARRIER_2(order);
+        return value;
+#endif
     }
 };
 
@@ -176,6 +226,21 @@ struct atomic_operations<t, 4>
             REX_UNREACHABLE();
         }
     }
+
+    static t exchange(t &storage, t value, memory_order order)
+    {
+        REX_ASSERT_MSG(order <= rex::memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+#if defined(REX_COMPILER_MSVC)
+        auto result = _InterlockedExchange(addressof(reinterpret_cast<volatile long &>(storage)),
+                                           reinterpret_cast<long &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        REX_PLACE_ATOMIC_RMW_BARRIER_1(order);
+        __asm__ __volatile__("xchg %0, %1" : "+r"(value) : "m"(storage) : "memory");
+        REX_PLACE_ATOMIC_RMW_BARRIER_2(order);
+        return value;
+#endif
+    }
 };
 
 template <typename t>
@@ -214,6 +279,21 @@ struct atomic_operations<t, 8>
         default:
             REX_UNREACHABLE();
         }
+    }
+
+    static t exchange(t &storage, t value, memory_order order)
+    {
+        REX_ASSERT_MSG(order <= rex::memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+#if defined(REX_COMPILER_MSVC)
+        auto result = _InterlockedExchange64(addressof(reinterpret_cast<volatile __int64 &>(storage)),
+                                             reinterpret_cast<__int64 &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        REX_PLACE_ATOMIC_RMW_BARRIER_1(order);
+        __asm__ __volatile__("xchg %0, %1" : "+r"(value) : "m"(storage) : "memory");
+        REX_PLACE_ATOMIC_RMW_BARRIER_2(order);
+        return value;
+#endif
     }
 };
 
@@ -264,6 +344,30 @@ struct atomic_operations<t, 16>
                              : "=m"(storage)
                              : "a"(cmp[0]), "d"(cmp[1]), "b"(val[0]), "c"(val[1])
                              : "cc", "memory"); // do I really need the cc clobber here?
+#endif
+    }
+
+    static t exchange(t &storage, t value, memory_order order)
+    {
+        REX_ASSERT_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+#if defined(REX_COMPILER_MSVC)
+        auto cpy = storage;
+        i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
+        i64 *val = reinterpret_cast<i64 *>(addressof(value));
+        i64 *dst = reinterpret_cast<i64 *>(addressof(storage));
+        (void)_InterlockedCompareExchange128(dst, val[1], val[0], cmp);
+        return cpy;
+#else
+        auto cpy = storage;
+        i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
+        i64 *val = reinterpret_cast<i64 *>(addressof(value));
+        REX_PLACE_ATOMIC_RMW_BARRIER_1(order);
+        __asm__ __volatile__("lock cmpxchg16b %0"
+                             : "=m"(storage)
+                             : "a"(cmp[0]), "d"(cmp[1]), "b"(val[0]), "c"(val[1])
+                             : "cc", "memory");
+        REX_PLACE_ATOMIC_RMW_BARRIER_2(order);
+        return cpy;
 #endif
     }
 };
