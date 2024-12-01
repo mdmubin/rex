@@ -237,7 +237,7 @@ struct atomic_operations<t, 16>
     static void store(t &storage, t value, memory_order order)
     {
         REX_VERIFY_ATOMIC_STORE_ORDER(order);
-#if defined(_MSC_VER)
+#if defined(REX_COMPILER_MSVC)
         auto cpy = storage;
         i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
         i64 *val = reinterpret_cast<i64 *>(addressof(value));
