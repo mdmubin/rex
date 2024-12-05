@@ -319,11 +319,7 @@ struct atomic_operations<t, 16>
     {
         REX_VERIFY_ATOMIC_STORE_ORDER(order);
 #if defined(REX_COMPILER_MSVC)
-        auto cpy = storage;
-        i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
-        i64 *val = reinterpret_cast<i64 *>(addressof(value));
-        i64 *dst = reinterpret_cast<i64 *>(addressof(storage));
-        (void)_InterlockedCompareExchange128(dst, val[1], val[0], cmp);
+        (void)exchange(storage, value, order);
 #else
         switch (order)
         {
@@ -335,14 +331,7 @@ struct atomic_operations<t, 16>
             __asm__ __volatile__("movdqa %0, %1" : "=m"(storage) : "x"(value));
             break;
         case memory_order_seq_cst:
-            auto cpy = storage;
-            i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
-            i64 *val = reinterpret_cast<i64 *>(addressof(value));
-            REX_COMPILER_BARRIER();
-            __asm__ __volatile__("lock cmpxchg16b %0"
-                                 : "=m"(storage)
-                                 : "a"(cmp[0]), "d"(cmp[1]), "b"(val[0]), "c"(val[1])
-                                 : "memory");
+            (void)exchange(storage, value, order);
             break;
         default:
             REX_UNREACHABLE();
