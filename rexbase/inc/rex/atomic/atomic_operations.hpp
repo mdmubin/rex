@@ -175,7 +175,7 @@ struct atomic_operations<t, 2>
 
     static t exchange(t &storage, t value, memory_order order)
     {
-        REX_VERIFY_MSG(order <=  memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
 #if defined(REX_COMPILER_MSVC)
         auto result = _InterlockedExchange16(addressof(reinterpret_cast<volatile short &>(storage)),
                                              reinterpret_cast<short &>(value));
@@ -335,8 +335,7 @@ struct atomic_operations<t, 16>
             __asm__ __volatile__("movdqa %0, %1" : "=m"(storage) : "x"(value));
             break;
         case memory_order_seq_cst:
-            auto cpy = storage;
-            i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
+            i64 *cmp = reinterpret_cast<i64 *>(addressof(storage));
             i64 *val = reinterpret_cast<i64 *>(addressof(value));
             REX_COMPILER_BARRIER();
             __asm__ __volatile__("lock cmpxchg16b %0"
