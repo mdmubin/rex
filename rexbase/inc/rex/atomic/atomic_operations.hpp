@@ -120,7 +120,7 @@ struct atomic_operations<t, 1>
 
     static t exchange(t &storage, t value, memory_order order)
     {
-        REX_ASSERT_MSG(order <= rex::memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
 #if defined(REX_COMPILER_MSVC)
         // NOTE: MSVC STL doesn't use any barrier, so is it ok if we also omit barriers in our own implementation?
         auto result = _InterlockedExchange8(addressof(reinterpret_cast<volatile char &>(storage)),
@@ -175,7 +175,7 @@ struct atomic_operations<t, 2>
 
     static t exchange(t &storage, t value, memory_order order)
     {
-        REX_ASSERT_MSG(order <= rex::memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+        REX_VERIFY_MSG(order <=  memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
 #if defined(REX_COMPILER_MSVC)
         auto result = _InterlockedExchange16(addressof(reinterpret_cast<volatile short &>(storage)),
                                              reinterpret_cast<short &>(value));
@@ -229,7 +229,7 @@ struct atomic_operations<t, 4>
 
     static t exchange(t &storage, t value, memory_order order)
     {
-        REX_ASSERT_MSG(order <= rex::memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
 #if defined(REX_COMPILER_MSVC)
         auto result = _InterlockedExchange(addressof(reinterpret_cast<volatile long &>(storage)),
                                            reinterpret_cast<long &>(value));
@@ -283,7 +283,7 @@ struct atomic_operations<t, 8>
 
     static t exchange(t &storage, t value, memory_order order)
     {
-        REX_ASSERT_MSG(order <= rex::memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
 #if defined(REX_COMPILER_MSVC)
         auto result = _InterlockedExchange64(addressof(reinterpret_cast<volatile __int64 &>(storage)),
                                              reinterpret_cast<__int64 &>(value));
@@ -300,11 +300,12 @@ struct atomic_operations<t, 8>
 template <typename t>
 struct atomic_operations<t, 16>
 {
+  public:
     static t load(t &storage, memory_order order)
     {
 #if defined(REX_COMPILER_MSVC)
-        i64 value[2];
-        (void)_InterlockedCompareExchange128((volatile long long *)addressof(storage), 0, 0, value);
+        __int64 value[2] = {0, 0};
+        (void)_InterlockedCompareExchange128((volatile __int64 *)addressof(storage), 0, 0, value);
         return *reinterpret_cast<t *>(value);
 #else
         __int128 value;
@@ -324,50 +325,61 @@ struct atomic_operations<t, 16>
         i64 *dst = reinterpret_cast<i64 *>(addressof(storage));
         (void)_InterlockedCompareExchange128(dst, val[1], val[0], cmp);
 #else
-        auto cpy = storage; // create a copy instead of writing directly into storage.
-        i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
-        i64 *val = reinterpret_cast<i64 *>(addressof(value));
-
         switch (order)
         {
         case memory_order_relaxed:
+            __asm__ __volatile__("movdqa %0, %1" : "=m"(storage) : "x"(value));
             break;
         case memory_order_release:
-        case memory_order_seq_cst:
             REX_COMPILER_BARRIER();
+            __asm__ __volatile__("movdqa %0, %1" : "=m"(storage) : "x"(value));
+            break;
+        case memory_order_seq_cst:
+            auto cpy = storage;
+            i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
+            i64 *val = reinterpret_cast<i64 *>(addressof(value));
+            REX_COMPILER_BARRIER();
+            __asm__ __volatile__("lock cmpxchg16b %0"
+                                 : "=m"(storage)
+                                 : "a"(cmp[0]), "d"(cmp[1]), "b"(val[0]), "c"(val[1])
+                                 : "memory");
             break;
         default:
             REX_UNREACHABLE();
         }
-
-        __asm__ __volatile__("lock cmpxchg16b %0"
-                             : "=m"(storage)
-                             : "a"(cmp[0]), "d"(cmp[1]), "b"(val[0]), "c"(val[1])
-                             : "cc", "memory"); // do I really need the cc clobber here?
 #endif
     }
 
     static t exchange(t &storage, t value, memory_order order)
     {
-        REX_ASSERT_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+        t previous;
+        bool success = false;
+        while (!success)
+        {
+            previous = storage;
+            i64 *cmp = reinterpret_cast<i64 *>(addressof(previous));
+            i64 *dst = reinterpret_cast<i64 *>(addressof(storage));
+            i64 *val = reinterpret_cast<i64 *>(addressof(value));
+            REX_PLACE_ATOMIC_RMW_BARRIER_1(order);
+            success = cmpxchg(dst, val, cmp);
+            REX_PLACE_ATOMIC_RMW_BARRIER_2(order);
+        }
+        return previous;
+    }
+
+  private:
+    static bool cmpxchg(i64 *dst, i64 *val, i64 *cmp)
+    {
 #if defined(REX_COMPILER_MSVC)
-        auto cpy = storage;
-        i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
-        i64 *val = reinterpret_cast<i64 *>(addressof(value));
-        i64 *dst = reinterpret_cast<i64 *>(addressof(storage));
-        (void)_InterlockedCompareExchange128(dst, val[1], val[0], cmp);
-        return cpy;
+        return static_cast<bool>(_InterlockedCompareExchange128(dst, val[1], val[0], cmp));
 #else
-        auto cpy = storage;
-        i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
-        i64 *val = reinterpret_cast<i64 *>(addressof(value));
-        REX_PLACE_ATOMIC_RMW_BARRIER_1(order);
-        __asm__ __volatile__("lock cmpxchg16b %0"
-                             : "=m"(storage)
-                             : "a"(cmp[0]), "d"(cmp[1]), "b"(val[0]), "c"(val[1])
-                             : "cc", "memory");
-        REX_PLACE_ATOMIC_RMW_BARRIER_2(order);
-        return cpy;
+        bool dstCmpEqual;
+        __asm__ __volatile__("lock cmpxchg16b %1"
+                             : "=@ccz"(dstCmpEqual), "=m"(*dst), "=a"(cmp[0]), "=d"(cmp[1])
+                             : "b"(val[0]), "c"(val[1])
+                             : "memory", "cc");
+        return dstCmpEqual;
 #endif
     }
 };
