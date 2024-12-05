@@ -335,7 +335,8 @@ struct atomic_operations<t, 16>
             __asm__ __volatile__("movdqa %0, %1" : "=m"(storage) : "x"(value));
             break;
         case memory_order_seq_cst:
-            i64 *cmp = reinterpret_cast<i64 *>(addressof(storage));
+            auto cpy = storage;
+            i64 *cmp = reinterpret_cast<i64 *>(addressof(cpy));
             i64 *val = reinterpret_cast<i64 *>(addressof(value));
             REX_COMPILER_BARRIER();
             __asm__ __volatile__("lock cmpxchg16b %0"
