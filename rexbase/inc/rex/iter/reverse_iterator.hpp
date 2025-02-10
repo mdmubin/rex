@@ -7,7 +7,7 @@ namespace rex
 {
 
 /// @brief An adaptor for an iterator that reverses the direction of the iteration.
-/// @tparam i The iterator type.
+/// @tparam iter_t The iterator type.
 template <typename iter_t>
 class reverse_iterator
 {
