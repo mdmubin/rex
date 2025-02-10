@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rex/types.hpp"
+#include "rex/atomic/atomic_operations.hpp"
 
 namespace rex::impl
 {
@@ -16,7 +17,7 @@ struct atomic_storage_traits
         : sizeof(t);
     static constexpr usz padding = size - sizeof(t);
 
-    static_assert(size <= 16 && size > 0, "Atomic operations are not currently if sizeof(t) > 16 or sizeof(t) == 0.");
+    static_assert(size <= 16 && size > 0, "Atomic storage is not supported if sizeof(t) > 16 or if sizeof(t) == 0.");
 }; // clang-format on
 
 template <typename t, bool padded = (atomic_storage_traits<t>::padding > 0)>
