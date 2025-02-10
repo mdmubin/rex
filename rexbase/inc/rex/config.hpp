@@ -30,6 +30,9 @@
         #if defined(_MSC_VER)
             #define REX_COMPILER_CLANG_CL 1
             #define REX_COMPILER_STRING "clang-cl"
+        #elif defined(__MINGW32__) || defined(__MINGW64__)
+            #define REX_COMPILER_MINGW_CLANG 1
+            #define REX_COMPILER_STRING "mingw-clang"
         #else
             #define REX_COMPILER_STRING "clang"
         #endif
@@ -38,6 +41,15 @@
         #define REX_COMPILER_MSVC 1
         #define REX_COMPILER_STRING "msvc"
         #define REX_COMPILER_VERSION _MSC_VER
+    #elif defined(__GNUC__)
+        #define REX_COMPILER_GCC 1
+        #if defined(__MINGW32__) || defined(__MINGW64__)
+            #define REX_COMPILER_MINGW_GCC 1
+            #define REX_COMPILER_STRING "mingw-gcc"
+        #else
+            #define REX_COMPILER_STRING "gcc"
+        #endif
+        #define REX_COMPILER_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
     #else
         #error unrecognized compiler.
     #endif
