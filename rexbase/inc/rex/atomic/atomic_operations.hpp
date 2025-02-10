@@ -370,4 +370,282 @@ struct atomic_operations<t, 2>
     }
 };
 
+template <typename t>
+struct atomic_operations<t, 4>
+{
+    static t load(t &storage, memory_order order) noexcept
+    {
+        REX_VERIFY_ATOMIC_LOAD_ORDER(order);
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        u32 value = *addressof(reinterpret_cast<volatile u32 &>(storage));
+        REX_PLACE_ATOMIC_LOAD_BARRIER(order);
+#else
+        u32 value = __atomic_load_n(addressof(reinterpret_cast<volatile u32 &>(storage)), order);
+#endif
+        return reinterpret_cast<t &>(value);
+    }
+
+    static void store(t &storage, t desired, memory_order order) noexcept
+    {
+        REX_VERIFY_ATOMIC_STORE_ORDER(order);
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        switch (order)
+        {
+        case memory_order_relaxed:
+            *addressof(reinterpret_cast<volatile u32 &>(storage)) = reinterpret_cast<u32 &>(desired);
+            break;
+        case memory_order_release:
+            REX_COMPILER_BARRIER();
+            *addressof(reinterpret_cast<volatile u32 &>(storage)) = reinterpret_cast<u32 &>(desired);
+            break;
+        case memory_order_seq_cst:
+            _InterlockedExchange(addressof(reinterpret_cast<volatile long &>(storage)),
+                                 reinterpret_cast<long &>(desired));
+            break;
+        default:
+            REX_UNREACHABLE();
+        }
+#else
+        __atomic_store_n(addressof(reinterpret_cast<volatile u32 &>(storage)), reinterpret_cast<u32 &>(desired), order);
+#endif
+    }
+
+    static t exchange(t &storage, t desired, memory_order order) noexcept
+    {
+        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        long prev = _InterlockedExchange(addressof(reinterpret_cast<volatile long &>(storage)),
+                                         reinterpret_cast<long &>(desired));
+#else
+        u32 prev = __atomic_exchange_n(addressof(reinterpret_cast<volatile u32 &>(storage)),
+                                       reinterpret_cast<u32 &>(desired), order);
+#endif
+        return reinterpret_cast<t &>(prev);
+    }
+
+    static bool cmpxchg(t &storage, t &expected, t desired, bool weak, memory_order success,
+                        memory_order failure) noexcept
+    {
+        REX_VERIFY_ATOMIC_CMPXCHG_ORDER(success, failure);
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_UNUSED(weak); // msvc STL only uses strong cmpxchg.
+
+        long required = *addressof(reinterpret_cast<volatile long &>(expected));
+        long previous = _InterlockedCompareExchange(addressof(reinterpret_cast<volatile long &>(storage)),
+                                                    reinterpret_cast<long &>(desired), required);
+
+        if (previous == required)
+        {
+            return true;
+        }
+
+        reinterpret_cast<long &>(expected) = previous;
+        return false;
+#else
+        return __atomic_compare_exchange_n(addressof(reinterpret_cast<volatile u32 &>(storage)),
+                                           addressof(reinterpret_cast<u32 &>(expected)),
+                                           reinterpret_cast<u32 &>(desired), weak, success, failure);
+#endif
+    }
+
+    static t fetch_add(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_VERIFY_MSG(order <= memory_order_seq_cst,
+                       "Invalid memory order constraint for atomic fetch add operation.");
+        long result = _InterlockedExchangeAdd(addressof(reinterpret_cast<volatile long &>(storage)),
+                                              reinterpret_cast<long &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        return __atomic_fetch_add(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+
+    static t fetch_sub(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        return fetch_add(storage, 0 - value, order);
+#else
+        return __atomic_fetch_sub(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+
+    static t fetch_and(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_VERIFY_MSG(order <= memory_order_seq_cst,
+                       "Invalid memory order constraint for atomic fetch and operation.");
+        long result =
+            _InterlockedAnd(addressof(reinterpret_cast<volatile long &>(storage)), reinterpret_cast<long &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        return __atomic_fetch_and(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+
+    static t fetch_or(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic fetch or operation.");
+        long result =
+            _InterlockedOr(addressof(reinterpret_cast<volatile long &>(storage)), reinterpret_cast<long &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        return __atomic_fetch_or(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+
+    static t fetch_xor(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_VERIFY_MSG(order <= memory_order_seq_cst,
+                       "Invalid memory order constraint for atomic fetch xor operation.");
+        long result =
+            _InterlockedXor(addressof(reinterpret_cast<volatile long &>(storage)), reinterpret_cast<long &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        return __atomic_fetch_xor(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+};
+
+template <typename t>
+struct atomic_operations<t, 8>
+{
+    static t load(t &storage, memory_order order) noexcept
+    {
+        REX_VERIFY_ATOMIC_LOAD_ORDER(order);
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        u64 value = *addressof(reinterpret_cast<volatile u64 &>(storage));
+        REX_PLACE_ATOMIC_LOAD_BARRIER(order);
+#else
+        u64 value = __atomic_load_n(addressof(reinterpret_cast<volatile u64 &>(storage)), order);
+#endif
+        return reinterpret_cast<t &>(value);
+    }
+
+    static void store(t &storage, t desired, memory_order order) noexcept
+    {
+        REX_VERIFY_ATOMIC_STORE_ORDER(order);
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        switch (order)
+        {
+        case memory_order_relaxed:
+            *addressof(reinterpret_cast<volatile u64 &>(storage)) = reinterpret_cast<u64 &>(desired);
+            break;
+        case memory_order_release:
+            REX_COMPILER_BARRIER();
+            *addressof(reinterpret_cast<volatile u64 &>(storage)) = reinterpret_cast<u64 &>(desired);
+            break;
+        case memory_order_seq_cst:
+            _InterlockedExchange64(addressof(reinterpret_cast<volatile __int64 &>(storage)),
+                                   reinterpret_cast<__int64 &>(desired));
+            break;
+        default:
+            REX_UNREACHABLE();
+        }
+#else
+        __atomic_store_n(addressof(reinterpret_cast<volatile u64 &>(storage)), reinterpret_cast<u64 &>(desired), order);
+#endif
+    }
+
+    static t exchange(t &storage, t desired, memory_order order) noexcept
+    {
+        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        __int64 prev = _InterlockedExchange64(addressof(reinterpret_cast<volatile __int64 &>(storage)),
+                                              reinterpret_cast<__int64 &>(desired));
+#else
+        u64 prev = __atomic_exchange_n(addressof(reinterpret_cast<volatile u64 &>(storage)),
+                                       reinterpret_cast<u64 &>(desired), order);
+#endif
+        return reinterpret_cast<t &>(prev);
+    }
+
+    static bool cmpxchg(t &storage, t &expected, t desired, bool weak, memory_order success,
+                        memory_order failure) noexcept
+    {
+        REX_VERIFY_ATOMIC_CMPXCHG_ORDER(success, failure);
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_UNUSED(weak); // msvc STL only uses strong cmpxchg.
+
+        __int64 required = *addressof(reinterpret_cast<volatile __int64 &>(expected));
+        __int64 previous = _InterlockedCompareExchange64(addressof(reinterpret_cast<volatile __int64 &>(storage)),
+                                                         reinterpret_cast<__int64 &>(desired), required);
+
+        if (previous == required)
+        {
+            return true;
+        }
+
+        reinterpret_cast<__int64 &>(expected) = previous;
+        return false;
+#else
+        return __atomic_compare_exchange_n(addressof(reinterpret_cast<volatile u64 &>(storage)),
+                                           addressof(reinterpret_cast<u64 &>(expected)),
+                                           reinterpret_cast<u64 &>(desired), weak, success, failure);
+#endif
+    }
+
+    static t fetch_add(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_VERIFY_MSG(order <= memory_order_seq_cst,
+                       "Invalid memory order constraint for atomic fetch add operation.");
+        __int64 result = _InterlockedExchangeAdd64(addressof(reinterpret_cast<volatile __int64 &>(storage)),
+                                                   reinterpret_cast<__int64 &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        return __atomic_fetch_add(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+
+    static t fetch_sub(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        return fetch_add(storage, 0 - value, order);
+#else
+        return __atomic_fetch_sub(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+
+    static t fetch_and(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_VERIFY_MSG(order <= memory_order_seq_cst,
+                       "Invalid memory order constraint for atomic fetch and operation.");
+        __int64 result = _InterlockedAnd64(addressof(reinterpret_cast<volatile __int64 &>(storage)),
+                                           reinterpret_cast<__int64 &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        return __atomic_fetch_and(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+
+    static t fetch_or(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic fetch or operation.");
+        __int64 result = _InterlockedOr64(addressof(reinterpret_cast<volatile __int64 &>(storage)),
+                                          reinterpret_cast<__int64 &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        return __atomic_fetch_or(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+
+    static t fetch_xor(t &storage, t value, memory_order order) noexcept
+    {
+#if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
+        REX_VERIFY_MSG(order <= memory_order_seq_cst,
+                       "Invalid memory order constraint for atomic fetch xor operation.");
+        __int64 result = _InterlockedXor64(addressof(reinterpret_cast<volatile __int64 &>(storage)),
+                                           reinterpret_cast<__int64 &>(value));
+        return reinterpret_cast<t &>(result);
+#else
+        return __atomic_fetch_xor(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
+#endif
+    }
+};
+
 } // namespace rex::impl
