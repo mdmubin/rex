@@ -5,8 +5,6 @@
 #include "rex/config.hpp"
 #include "rex/mem/addressof.hpp"
 #include "rex/types.hpp"
-#include "rex/traits/enable_if.hpp"
-#include "rex/traits/is_integral.hpp"
 
 //
 
@@ -76,6 +74,8 @@ struct atomic_operations
 template <typename t>
 struct atomic_operations<t, 1>
 {
+    /// @brief Perform an atomic load operation on `storage`.
+    /// @return The value present within `storage`.
     static t load(t &storage, memory_order order) noexcept
     {
         REX_VERIFY_ATOMIC_LOAD_ORDER(order);
@@ -88,6 +88,7 @@ struct atomic_operations<t, 1>
         return reinterpret_cast<t &>(value);
     }
 
+    /// @brief Perform an atomic operation on `storage` to store `desired`.
     static void store(t &storage, t desired, memory_order order) noexcept
     {
         REX_VERIFY_ATOMIC_STORE_ORDER(order);
@@ -95,11 +96,11 @@ struct atomic_operations<t, 1>
         switch (order)
         {
         case memory_order_relaxed:
-            *addressof(reinterpret_cast<volatile uint8_t &>(storage)) = reinterpret_cast<uint8_t &>(desired);
+            *addressof(reinterpret_cast<volatile u8 &>(storage)) = reinterpret_cast<u8 &>(desired);
             break;
         case memory_order_release:
             REX_COMPILER_BARRIER();
-            *addressof(reinterpret_cast<volatile uint8_t &>(storage)) = reinterpret_cast<uint8_t &>(desired);
+            *addressof(reinterpret_cast<volatile u8 &>(storage)) = reinterpret_cast<u8 &>(desired);
             break;
         case memory_order_seq_cst:
             _InterlockedExchange8(addressof(reinterpret_cast<volatile char &>(storage)),
@@ -108,12 +109,13 @@ struct atomic_operations<t, 1>
         default:
             __assume(false);
         }
-#else // use gcc intrinsics (supported on clang as well)
-        __atomic_store_n(addressof(reinterpret_cast<volatile uint8_t &>(storage)), reinterpret_cast<uint8_t &>(desired),
-                         order);
+#else
+        __atomic_store_n(addressof(reinterpret_cast<volatile u8 &>(storage)), reinterpret_cast<u8 &>(desired), order);
 #endif
     }
 
+    /// @brief Perform an atomic exchange operation on `storage` to store `desired` into `storage`.
+    /// @return The previous value within `storage`.
     static t exchange(t &storage, t desired, memory_order order) noexcept
     {
         REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic exchange.");
@@ -128,14 +130,17 @@ struct atomic_operations<t, 1>
         return reinterpret_cast<t &>(prev);
     }
 
+    /// @brief Perform an atomic cmpxchg operation on `storage`. If `storage` is equal to `expected`, the `storage` is
+    /// overwritten with the contents of `desired`. Otherwise, the contents of `expected` is overwritten with the
+    /// contents of `storage`.
+    /// i.e. `if (storage == expected) { storage := desired } else { expected := storage }`
+    /// @return Whether `storage` is equal to `expected`.
     static bool cmpxchg(t &storage, t &expected, t desired, bool weak, memory_order success,
                         memory_order failure) noexcept
     {
         REX_VERIFY_ATOMIC_CMPXCHG_ORDER(success, failure);
 #if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
-        REX_UNUSED(weak);    // msvc STL only uses strong cmpxchg.
-        REX_UNUSED(success); // orderings not really necessary
-        REX_UNUSED(failure);
+        REX_UNUSED(weak); // msvc STL only uses strong cmpxchg.
 
         char required = *addressof(reinterpret_cast<volatile char &>(expected));
         char previous = _InterlockedCompareExchange8(addressof(reinterpret_cast<volatile char &>(storage)),
@@ -155,7 +160,9 @@ struct atomic_operations<t, 1>
 #endif
     }
 
-    static enable_if_t<is_integral_v<t>, t> fetch_add(t &storage, t value, memory_order order) noexcept
+    /// @brief Update `storage` by adding `value` to it. `storage` is expected to be an integral type.
+    /// @return The result of the operation.
+    static t fetch_add(t &storage, t value, memory_order order) noexcept
     {
 #if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
         REX_VERIFY_MSG(order <= memory_order_seq_cst,
@@ -168,7 +175,9 @@ struct atomic_operations<t, 1>
 #endif
     }
 
-    static enable_if_t<is_integral_v<t>, t> fetch_sub(t &storage, t value, memory_order order) noexcept
+    /// @brief Update `storage` by subtracting `value` from it. `storage` is expected to be an integral type.
+    /// @return The result of the operation.
+    static t fetch_sub(t &storage, t value, memory_order order) noexcept
     {
 #if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
         return fetch_add(storage, 0 - value, order);
@@ -177,7 +186,9 @@ struct atomic_operations<t, 1>
 #endif
     }
 
-    static enable_if_t<is_integral_v<t>, t> fetch_and(t &storage, t value, memory_order order) noexcept
+    /// @brief Update `storage` by bitwise and-ing `value` with it. `storage` is expected to be an integral type.
+    /// @return The result of the operation.
+    static t fetch_and(t &storage, t value, memory_order order) noexcept
     {
 #if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
         REX_VERIFY_MSG(order <= memory_order_seq_cst,
@@ -190,7 +201,9 @@ struct atomic_operations<t, 1>
 #endif
     }
 
-    static enable_if_t<is_integral_v<t>, t> fetch_or(t &storage, t value, memory_order order) noexcept
+    /// @brief Update `storage` by bitwise or-ing `value` with it. `storage` is expected to be an integral type.
+    /// @return The result of the operation.
+    static t fetch_or(t &storage, t value, memory_order order) noexcept
     {
 #if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
         REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic fetch or operation.");
@@ -202,7 +215,9 @@ struct atomic_operations<t, 1>
 #endif
     }
 
-    static enable_if_t<is_integral_v<t>, t> fetch_xor(t &storage, t value, memory_order order) noexcept
+    /// @brief Update `storage` by bitwise xor-ing `value` with it. `storage` is expected to be an integral type.
+    /// @return The result of the operation.
+    static t fetch_xor(t &storage, t value, memory_order order) noexcept
     {
 #if defined(REX_COMPILER_MSVC) || defined(REX_COMPILER_CLANG_CL)
         REX_VERIFY_MSG(order <= memory_order_seq_cst,
