@@ -770,4 +770,24 @@ struct atomic_operations<t, 16>
 #endif
 };
 
+template <typename t>
+constexpr bool atomic_operations_are_always_lock_free()
+{
+#if defined(REX_COMPILER_MSVC)
+    return sizeof(t) <= 8 && ((sizeof(t) - 1) & sizeof(t)) == 0;
+#else
+    return __atomic_always_lock_free(sizeof(t), 0);
+#endif
+}
+
+template <typename t>
+bool atomic_operations_are_lock_free()
+{
+#if defined(REX_COMPILER_MSVC)
+    return atomic_operations_are_always_lock_free<t>();
+#else
+    return __atomic_is_lock_free(sizeof(t), 0);
+#endif
+}
+
 } // namespace rex::impl
