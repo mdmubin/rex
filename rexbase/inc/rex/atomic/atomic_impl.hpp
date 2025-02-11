@@ -3,13 +3,19 @@
 #include "rex/types.hpp"
 #include "rex/atomic/atomic_operations.hpp"
 #include "rex/traits/is_integral.hpp"
+#include "rex/traits/is_constructible.hpp"
+#include "rex/traits/is_assignable.hpp"
+#include "rex/traits/is_same.hpp"
+#include "rex/traits/is_trivial.hpp"
+#include "rex/traits/is_const_volatile.hpp"
 
 namespace rex
 {
 
 // forward decls
 
-template <typename t> class atomic;
+template <typename t>
+class atomic;
 
 } // namespace rex
 
@@ -206,11 +212,11 @@ class atomic : public impl::atomic_base<t>
 
     void store(value_type desired, memory_order order = memory_order_seq_cst) noexcept
     {
-        operations::store(base_type::m_storage, desired, order);
+        operations::store(base_type::m_storage, {desired}, order);
     }
     void store(value_type desired, memory_order order = memory_order_seq_cst) volatile noexcept
     {
-        operations::store(base_type::m_storage, desired, order);
+        operations::store(base_type::m_storage, {desired}, order);
     }
 
     value_type load(memory_order order = memory_order_seq_cst) const noexcept
@@ -224,11 +230,11 @@ class atomic : public impl::atomic_base<t>
 
     value_type exchange(value_type desired, memory_order order = memory_order_seq_cst) noexcept
     {
-        return operations::exchange(base_type::m_storage, desired, order).data;
+        return operations::exchange(base_type::m_storage, {desired}, order).data;
     }
     value_type exchange(value_type desired, memory_order order = memory_order_seq_cst) volatile noexcept
     {
-        return operations::exchange(base_type::m_storage, desired, order).data;
+        return operations::exchange(base_type::m_storage, {desired}, order).data;
     }
 
     // clang-format off
@@ -236,14 +242,14 @@ class atomic : public impl::atomic_base<t>
     bool compare_exchange_weak(value_type &expected, value_type desired, memory_order success, memory_order failure) noexcept
     {
         auto expRes = store_type{expected};
-        auto result = operations::cmpxchg(base_type::m_storage, expRes, desired, true, success, failure);
+        auto result = operations::cmpxchg(base_type::m_storage, expRes, {desired}, true, success, failure);
         expected    = expRes.data;
         return result;
     }
     bool compare_exchange_weak(value_type &expected, value_type desired, memory_order success, memory_order failure) volatile noexcept
     {
         auto expRes = store_type{expected};
-        auto result = operations::cmpxchg(base_type::m_storage, expRes, desired, true, success, failure);
+        auto result = operations::cmpxchg(base_type::m_storage, expRes, {desired}, true, success, failure);
         expected    = expRes.data;
         return result;
     }
@@ -264,14 +270,14 @@ class atomic : public impl::atomic_base<t>
     bool compare_exchange_strong(value_type &expected, value_type desired, memory_order success, memory_order failure) noexcept
     {
         auto expRes = store_type{expected};
-        auto result = operations::cmpxchg(base_type::m_storage, expRes, desired, false, success, failure);
+        auto result = operations::cmpxchg(base_type::m_storage, expRes, {desired}, false, success, failure);
         expected    = expRes.data;
         return result;
     }
     bool compare_exchange_strong(value_type &expected, value_type desired, memory_order success, memory_order failure) volatile noexcept
     {
         auto expRes = store_type{expected};
-        auto result = operations::cmpxchg(base_type::m_storage, expRes, desired, false, success, failure);
+        auto result = operations::cmpxchg(base_type::m_storage, expRes, {desired}, false, success, failure);
         expected    = expRes.data;
         return result;
     }
@@ -300,6 +306,11 @@ class atomic : public impl::atomic_base<t>
 
   public: /* PUBLIC MEMBERS */
     static constexpr bool is_always_lock_free = impl::atomic_operations_are_always_lock_free<t>();
+
+  public:
+    static_assert(is_trivially_copyable_v<t> && is_copy_constructible_v<t> && is_move_constructible_v<t> &&
+                      is_copy_assignable_v<t> && is_move_assignable_v<t> && is_same_v<t, remove_cv_t<t>>,
+                  "Given type `t` does not satisfy the requirements for atomic<t>.");
 };
 
 } // namespace rex
