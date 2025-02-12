@@ -24,16 +24,15 @@ namespace rex::impl
 template <typename t>
 struct atomic_storage_traits
 {
-    static constexpr usz size    = sizeof(t) == 1    ? 1
-                                   : sizeof(t) == 2  ? 2
-                                   : sizeof(t) <= 4  ? 4
-                                   : sizeof(t) <= 8  ? 8
-                                   : sizeof(t) <= 16 ? 16
-                                                     : sizeof(t);
+    static constexpr usz size = sizeof(t) == 1  ? 1
+                              : sizeof(t) == 2  ? 2
+                              : sizeof(t) <= 4  ? 4
+                              : sizeof(t) <= 8  ? 8
+                              : sizeof(t) <= 16 ? 16
+                              : sizeof(t);
     static constexpr usz padding = size - sizeof(t);
 
-    static_assert(size <= 16 && size > 0,
-                  "Atomic operations are not supported if sizeof(t) > 16 or if sizeof(t) == 0.");
+    static_assert(size <= 16 && size > 0, "Atomic operations are not supported if sizeof(t) > 16 or if sizeof(t) == 0.");
 };
 
 template <typename t, bool padded = (atomic_storage_traits<t>::padding > 0)>
