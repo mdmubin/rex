@@ -20,7 +20,33 @@
     #pragma intrinsic(_InterlockedExchange8)
     #pragma intrinsic(_InterlockedExchange16)
     #pragma intrinsic(_InterlockedExchange64)
+    //
+    #pragma intrinsic(_InterlockedCompareExchange)
+    #pragma intrinsic(_InterlockedCompareExchange8)
+    #pragma intrinsic(_InterlockedCompareExchange16)
+    #pragma intrinsic(_InterlockedCompareExchange64)
     #pragma intrinsic(_InterlockedCompareExchange128)
+    //
+    #pragma intrinsic(_InterlockedExchangeAdd)
+    #pragma intrinsic(_InterlockedExchangeAdd8)
+    #pragma intrinsic(_InterlockedExchangeAdd16)
+    #pragma intrinsic(_InterlockedExchangeAdd64)
+    //
+    #pragma intrinsic(_InterlockedAnd)
+    #pragma intrinsic(_InterlockedAnd8)
+    #pragma intrinsic(_InterlockedAnd16)
+    #pragma intrinsic(_InterlockedAnd64)
+    //
+    #pragma intrinsic(_InterlockedOr)
+    #pragma intrinsic(_InterlockedOr8)
+    #pragma intrinsic(_InterlockedOr16)
+    #pragma intrinsic(_InterlockedOr64)
+    //
+    #pragma intrinsic(_InterlockedXor)
+    #pragma intrinsic(_InterlockedXor8)
+    #pragma intrinsic(_InterlockedXor16)
+    #pragma intrinsic(_InterlockedXor64)
+    //
     #pragma intrinsic(_ReadWriteBarrier)
     #define REX_COMPILER_BARRIER() _ReadWriteBarrier() // deprecated. but what to use instead?
 #endif
@@ -711,11 +737,11 @@ struct atomic_operations<t, 16>
             reinterpret_cast<__int64 *>(addressof(storage))[1],
         };
 
-        auto result = _InterlockedCompareExchange128(           //
-            reinterpret_cast<__int64 *>(addressof(storage)),    // - storage as i64 pointer
-            reinterpret_cast<__int64 *>(addressof(desired))[1], // - desired high
-            reinterpret_cast<__int64 *>(addressof(desired))[0], // - desired low
-            reinterpret_cast<__int64 *>(addressof(expected))    // - expected data
+        auto result = _InterlockedCompareExchange128(
+            reinterpret_cast<volatile __int64 *>(addressof(storage)), // - storage as i64 pointer
+            reinterpret_cast<__int64 *>(addressof(desired))[1],       // - desired high
+            reinterpret_cast<__int64 *>(addressof(desired))[0],       // - desired low
+            reinterpret_cast<__int64 *>(addressof(expected))          // - expected data
         );
 
         if (result)

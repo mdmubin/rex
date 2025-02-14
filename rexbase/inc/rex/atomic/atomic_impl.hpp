@@ -56,12 +56,12 @@ struct atomic_storage<t, false>
 template <typename t>
 class atomic_base
 {
-  public:
+  public: /* TYPEDEFS */
     using this_type  = atomic_base<t>;
     using store_type = atomic_storage<t>;
     using operations = atomic_operations<store_type>;
 
-  public:
+  public: /* CTORS */
     atomic_base() noexcept = default;
     constexpr atomic_base(t desired) noexcept : m_storage{desired} {}
 
@@ -172,8 +172,6 @@ class atomic_base
   private: /* PRIVATE MEMBERS */
     store_type m_storage;
 
-    // HOORAY FRIENDS!! 😊
-
     friend class atomic<t>; // (we want atomic<t> to be able to access `m_storage`)
 };
 
@@ -185,12 +183,12 @@ namespace rex
 template <typename t>
 class atomic : public impl::atomic_base<t>
 {
-  public:
+  public: /* TYPEDEFS */
     using value_type = t;
     using this_type  = atomic<value_type>;
     using base_type  = impl::atomic_base<value_type>;
 
-  public:
+  public: /* CTORS */
     atomic() noexcept = default;
     constexpr atomic(value_type desired) noexcept : base_type{desired} {}
 
@@ -240,7 +238,7 @@ class atomic<t *> : public impl::atomic_base<t *>
     this_type &operator=(const this_type &)          = delete;
     this_type &operator=(const this_type &) volatile = delete;
 
-  public:
+  public: /* METHODS */
     pointer_type fetch_add(difference_type value, memory_order order = memory_order_seq_cst) noexcept
     {
         return operations::fetch_add(base_type::m_storage.data, value * sizeof(value_type), order);
@@ -284,7 +282,7 @@ class atomic<t *> : public impl::atomic_base<t *>
 
 #define REX_ATOMIC_INTEGRAL_TYPE(integerType)                                                                          \
     template <>                                                                                                        \
-    class atomic<integerType> : impl::atomic_base<integerType>                                                         \
+    class atomic<integerType> : public impl::atomic_base<integerType>                                                  \
     {                                                                                                                  \
       public: /* TYPEDEFS */                                                                                           \
         using value_type      = integerType;                                                                           \

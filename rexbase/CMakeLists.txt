@@ -24,3 +24,7 @@ add_library(rexbase ${rex_base_src} ${rex_base_inc})
 # project include directory configuration
 target_include_directories(rexbase PUBLIC  ${rex_inc_dir})
 target_include_directories(rexbase PRIVATE ${rex_src_dir})
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(rexbase PRIVATE atomic)
+endif()
