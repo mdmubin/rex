@@ -38,11 +38,8 @@ struct atomic_storage_traits
 template <typename t, bool padded = (atomic_storage_traits<t>::padding > 0)>
 struct atomic_storage /* in case data is packed, padding is required */
 {
-    constexpr atomic_storage() noexcept = default;
-    constexpr atomic_storage(t data) noexcept : data{data} {}
-
-    alignas(atomic_storage_traits<t>::size) t data;
-    u8 padding[atomic_storage_traits<t>::padding] = {};
+    alignas(atomic_storage_traits<t>::size) t data = {};
+    u8 padding[atomic_storage_traits<t>::padding]  = {};
 };
 
 template <typename t>
