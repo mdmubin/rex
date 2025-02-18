@@ -758,42 +758,6 @@ struct atomic_operations<t, 16>
                                            reinterpret_cast<u8 &>(desired), weak, success, failure);
 #endif
     }
-
-#if !defined(REX_COMPILER_MSVC) // 128-bit integral fetch add/sub/bitwise operations are not supported by MSVC.
-    static t fetch_add(t &storage, t value, memory_order order) noexcept
-    {
-        REX_VERIFY_MSG(order <= memory_order_seq_cst,
-                       "Invalid memory order constraint for atomic fetch add operation.");
-        return __atomic_fetch_add(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
-    }
-
-    static t fetch_sub(t &storage, t value, memory_order order) noexcept
-    {
-        REX_VERIFY_MSG(order <= memory_order_seq_cst,
-                       "Invalid memory order constraint for atomic fetch sub operation.");
-        return __atomic_fetch_sub(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
-    }
-
-    static t fetch_and(t &storage, t value, memory_order order) noexcept
-    {
-        REX_VERIFY_MSG(order <= memory_order_seq_cst,
-                       "Invalid memory order constraint for atomic fetch and operation.");
-        return __atomic_fetch_and(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
-    }
-
-    static t fetch_or(t &storage, t value, memory_order order) noexcept
-    {
-        REX_VERIFY_MSG(order <= memory_order_seq_cst, "Invalid memory order constraint for atomic fetch or operation.");
-        return __atomic_fetch_or(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
-    }
-
-    static t fetch_xor(t &storage, t value, memory_order order) noexcept
-    {
-        REX_VERIFY_MSG(order <= memory_order_seq_cst,
-                       "Invalid memory order constraint for atomic fetch xor operation.");
-        return __atomic_fetch_xor(addressof(reinterpret_cast<volatile t &>(storage)), value, order);
-    }
-#endif
 };
 
 template <typename t>

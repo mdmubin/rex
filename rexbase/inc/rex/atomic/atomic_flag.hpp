@@ -7,11 +7,11 @@ namespace rex
 
 class atomic_flag
 {
-  public: /* TYPDEFS */
+  public: /* TYPEDEFS */
     using this_type = atomic_flag;
 
   public: /* CTORS */
-    constexpr atomic_flag() noexcept = default;
+    atomic_flag() noexcept = default;
 
   public: /* DELETED */
     atomic_flag(const this_type &)                   = delete;
