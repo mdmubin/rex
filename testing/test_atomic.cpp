@@ -1,3 +1,4 @@
+#include <thread>
 #include <gtest/gtest.h>
 #include <rex/atomic.hpp>
 
@@ -429,5 +430,31 @@ TEST(AtomicTest, FetchXor)
         atomic_i64 j{0};
         EXPECT_EQ(j.fetch_xor(0xFF), 0);
         EXPECT_EQ(j.load(), 0xFF);
+    }
+}
+
+TEST(AtomicTest, IncrementMT)
+{
+    for (int i = 0; i < 100; i++)
+    {
+        rex::atomic_i32 value{};
+        {
+            std::thread t1{[&value] {
+                for (int i = 0; i < 100000; i++)
+                {
+                    ++value;
+                }
+            }};
+            std::thread t2{[&value] {
+                for (int i = 0; i < 100000; i++)
+                {
+                    ++value;
+                }
+            }};
+
+            t1.join();
+            t2.join();
+        }
+        EXPECT_EQ(value.load(), 200000);
     }
 }
