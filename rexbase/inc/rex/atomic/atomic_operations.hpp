@@ -48,6 +48,8 @@
     #pragma intrinsic(_InterlockedXor64)
     //
     #pragma intrinsic(_ReadWriteBarrier)
+    #pragma intrinsic(__faststorefence)
+
     #define REX_COMPILER_BARRIER() _ReadWriteBarrier() // deprecated. but what to use instead?
 #endif
 
@@ -781,3 +783,57 @@ bool atomic_operations_are_lock_free()
 }
 
 } // namespace rex::impl
+
+namespace rex
+{
+
+/// @brief Removes memory ordering dependency for loads with `mo_consume` constraints.
+template <typename t>
+t kill_dependency(t value) noexcept
+{
+    return value;
+}
+
+/// @brief Ensures synchronization of operations according to the `memory_order` constraints.
+/// @note Implementation detail:
+/// - Does nothing if `order == memory_order_relaxed`.
+/// - Generates compiler barriers and a CPU barrier instruction if `order == memory_order_seq_cst`.
+/// - Generates a compiler barrier for any other constraints.
+extern "C" inline void atomic_thread_fence(memory_order order) noexcept
+{
+#if defined(REX_COMPILER_MSVC)
+    if (order == memory_order_relaxed)
+    {
+        return;
+    }
+
+    REX_COMPILER_BARRIER();
+
+    if (order == memory_order_seq_cst)
+    {
+        __faststorefence(); // generates a dummy interlocked or operation
+        REX_COMPILER_BARRIER();
+    }
+#else
+    __atomic_thread_fence(order);
+#endif
+}
+
+/// @brief Ensures synchronization of operations according to the `memory_order` constraints without generating a CPU
+/// instruction for it.
+/// @note Implementation detail:
+/// - Does nothing if `order == memory_order_relaxed`.
+/// - Generates a compiler barrier for any other constraints.
+extern "C" inline void atomic_signal_fence(memory_order order)
+{
+#if defined(REX_COMPILER_MSVC)
+    if (order != memory_order_relaxed)
+    {
+        REX_COMPILER_BARRIER();
+    }
+#else
+    __atomic_signal_fence(order);
+#endif
+}
+
+} // namespace rex
