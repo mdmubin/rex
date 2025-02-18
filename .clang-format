@@ -3,7 +3,7 @@ BasedOnStyle: Microsoft
 LineEnding: CRLF
 
 # pre-processor style
-SortIncludes: false
+SortIncludes: Never
 IncludeBlocks: Regroup
 IndentPPDirectives: BeforeHash
 
@@ -16,3 +16,6 @@ AlwaysBreakTemplateDeclarations: Yes
 
 # no-except specifiers
 AllowBreakBeforeNoexceptSpecifier: Always
+
+# braces style
+AllowShortFunctionsOnASingleLine: Empty

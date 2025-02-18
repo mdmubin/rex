@@ -2,7 +2,6 @@
 
 #include <initializer_list>
 
-#include "rex/config.hpp"
 #include "rex/iter/reverse_iterator.hpp"
 #include "rex/types.hpp"
 
@@ -85,7 +84,7 @@ constexpr auto rbegin(const container_t &container) -> decltype(container.rbegin
     return container.rbegin();
 }
 
-/// @brief Get an reverse iterator to the beginning of an array of elements of type `elem_t` and size `arrlen`.
+/// @brief Get a reverse iterator to the beginning of an array of elements of type `elem_t` and size `arrlen`.
 template <typename elem_t, usz arrlen>
 constexpr reverse_iterator<elem_t *> rbegin(elem_t (&array)[arrlen]) noexcept
 {

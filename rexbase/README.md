@@ -1,7 +1,10 @@
 # `rexbase`
 My own implementation of the C++ STL.
 
-Currently completed:
+Currently implemented:
 * `<limits>`
 * `<iterator>`
 * `<type_traits>`
+* `<atomic>` *
+
+\* *with limited testing*

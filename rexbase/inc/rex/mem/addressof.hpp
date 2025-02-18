@@ -1,8 +1,5 @@
 #pragma once
 
-#include "rex/traits/enable_if.hpp"
-#include "rex/traits/is_object.hpp"
-
 namespace rex
 {
 
