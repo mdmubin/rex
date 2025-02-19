@@ -11,11 +11,13 @@ set(rex_base_inc
     ${rex_inc_dir}/rex/config.hpp
     ${rex_inc_dir}/rex/iterator.hpp
     ${rex_inc_dir}/rex/limits.hpp
+    ${rex_inc_dir}/rex/ratio.hpp
     ${rex_inc_dir}/rex/types.hpp
     ${rex_inc_dir}/rex/type_traits.hpp
 )
 set(rex_base_src
     ${rex_src_dir}/assert.cpp
+        inc/rex/ratio/ratio_impl.hpp
 )
 
 # build project sources

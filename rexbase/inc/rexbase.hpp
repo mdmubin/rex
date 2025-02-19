@@ -7,5 +7,6 @@
 #include "rex/config.hpp"
 #include "rex/iterator.hpp"
 #include "rex/limits.hpp"
+#include "rex/ratio.hpp"
 #include "rex/type_traits.hpp"
 #include "rex/types.hpp"
